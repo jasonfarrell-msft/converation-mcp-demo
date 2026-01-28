@@ -1,0 +1,6 @@
+@Farrellsoft.Example.SurveyDataMcp_HostAddress = http://localhost:5121
+
+GET {{Farrellsoft.Example.SurveyDataMcp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

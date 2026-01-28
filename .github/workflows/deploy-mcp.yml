@@ -1,0 +1,67 @@
+name: Build and Deploy Survey Data MCP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pilot3/Farrellsoft.Example.SurveyDataMcp/**'
+      - '.github/workflows/deploy-mcp.yml'
+  workflow_dispatch:
+
+env:
+  ACR_NAME: acrsurveyapieus2mx01
+  ACR_LOGIN_SERVER: acrsurveyapieus2mx01.azurecr.io
+  IMAGE_NAME: survey-data-mcp
+  CONTAINER_APP_NAME: aca-dte-surveydata-mcp-eus2-mx01
+  RESOURCE_GROUP: rg-client-sandbox-eus2-mx01
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDS }}
+
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and tag Docker image
+        working-directory: ./pilot3/Farrellsoft.Example.SurveyDataMcp
+        run: |
+          IMAGE_TAG=v${{ github.run_number }}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG .
+          docker tag ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Push Docker image to ACR
+        run: |
+          docker push ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Create new Container App revision
+        run: |
+          # Update the container app with new image and set SqlConnectionString from secret
+          az containerapp update \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            --set-env-vars SqlConnectionString=secretref:sqlconnectionstring
+
+      - name: Deployment Summary
+        run: |
+          echo "### Deployment Summary :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag**: \`${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **ACR**: \`${{ env.ACR_LOGIN_SERVER }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Container App**: \`${{ env.CONTAINER_APP_NAME }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Resource Group**: \`${{ env.RESOURCE_GROUP }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Deployment completed successfully!" >> $GITHUB_STEP_SUMMARY

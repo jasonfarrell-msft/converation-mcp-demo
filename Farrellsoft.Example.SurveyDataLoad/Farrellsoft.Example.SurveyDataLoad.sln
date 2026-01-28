@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Farrellsoft.Example.SurveyDataLoad", "Farrellsoft.Example.SurveyDataLoad.csproj", "{0A7EE069-83BE-7241-84F2-D6AE8B6E2A24}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0A7EE069-83BE-7241-84F2-D6AE8B6E2A24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A7EE069-83BE-7241-84F2-D6AE8B6E2A24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A7EE069-83BE-7241-84F2-D6AE8B6E2A24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A7EE069-83BE-7241-84F2-D6AE8B6E2A24}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4BE2D3FC-385B-48BD-8E36-80CC22A40190}
+	EndGlobalSection
+EndGlobal

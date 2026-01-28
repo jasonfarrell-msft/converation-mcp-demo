@@ -1,0 +1,19 @@
+{
+  "Name": "Foundry Agent User",
+  "Id": null,
+  
+"IsCustom": true,
+  "Description": "Grants data-plane read/write access to Foundry AI Services agents, plus control-plane account read.",
+  "Actions": [
+    "Microsoft.CognitiveServices/accounts/read"
+  ],
+  "NotActions": [],
+  "DataActions": [
+    "Microsoft.CognitiveServices/accounts/AIServices/agents/read",
+    "Microsoft.CognitiveServices/accounts/AIServices/agents/write"
+  ],
+  "NotDataActions": [],
+  "AssignableScopes": [
+    "/subscriptions/<sub id>"
+  ]
+}

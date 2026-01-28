@@ -1,0 +1,108 @@
+name: Build and Deploy Survey Data API
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pilot3/Farrellsoft.Example.SurveyDataApi/**'
+      - '.github/workflows/deploy-api.yml'
+  workflow_dispatch:
+
+env:
+  ACR_NAME: acrsurveyapieus2mx01
+  ACR_LOGIN_SERVER: acrsurveyapieus2mx01.azurecr.io
+  IMAGE_NAME: surveydataapi
+  CONTAINER_APP_NAME: aca-surveydataapi-eus2-mx01
+  RESOURCE_GROUP: rg-client-sandbox-eus2-mx01
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDS }}
+
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and tag Docker image
+        working-directory: ./pilot3/Farrellsoft.Example.SurveyDataApi
+        run: |
+          IMAGE_TAG=v${{ github.run_number }}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG .
+          docker tag ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Push Docker image to ACR
+        run: |
+          docker push ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Get current Container App environment variables
+        id: get-env-vars
+        run: |
+          echo "Fetching current environment variables..."
+          az containerapp show \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query 'properties.template.containers[0].env' \
+            -o json > env-vars.json
+          cat env-vars.json
+
+      - name: Create new Container App revision
+        run: |
+          # Get the environment variables from the previous step
+          ENV_VARS=$(cat env-vars.json)
+          
+          # Check if env vars exist and are not empty
+          if [ "$ENV_VARS" != "null" ] && [ "$ENV_VARS" != "[]" ]; then
+            # Build the environment variables parameter
+            ENV_PARAMS=""
+            for row in $(echo "$ENV_VARS" | jq -r '.[] | @base64'); do
+              _jq() {
+                echo ${row} | base64 --decode | jq -r ${1}
+              }
+              NAME=$(_jq '.name')
+              
+              # Check if it's a secretRef or a regular value
+              if [ "$(_jq '.secretRef')" != "null" ]; then
+                SECRET_REF=$(_jq '.secretRef')
+                ENV_PARAMS="$ENV_PARAMS --set-env-vars ${NAME}=secretref:${SECRET_REF}"
+              else
+                VALUE=$(_jq '.value')
+                ENV_PARAMS="$ENV_PARAMS --set-env-vars ${NAME}=${VALUE}"
+              fi
+            done
+            
+            # Update the container app with new image and preserve env vars
+            az containerapp update \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --image ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+              $ENV_PARAMS
+          else
+            # No env vars, just update the image
+            az containerapp update \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --image ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          fi
+
+      - name: Deployment Summary
+        run: |
+          echo "### Deployment Summary :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag**: \`${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **ACR**: \`${{ env.ACR_LOGIN_SERVER }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Container App**: \`${{ env.CONTAINER_APP_NAME }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Resource Group**: \`${{ env.RESOURCE_GROUP }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Deployment completed successfully!" >> $GITHUB_STEP_SUMMARY

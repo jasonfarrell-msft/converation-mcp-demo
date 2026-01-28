@@ -1,0 +1,13 @@
+.venv/
+bin/
+obj/
+
+__pycache__/
+output/
+Properties/
+
+.vs/
+.vscode/
+
+**/*/*.csv
+.env
