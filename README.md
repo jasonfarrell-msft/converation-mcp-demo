@@ -123,12 +123,12 @@ az acr create \
   --name $REGISTRY_NAME \
   --resource-group $RG_NAME \
   --location $LOCATION_SHORT \
-  --sku Basic \
+  --sku Standard \
   --admin-enabled true
 ```
 
 This creates a container registry with:
-- Basic SKU for cost-effective container storage
+- Standard SKU for cost-effective container storage
 - Admin access enabled for container deployments
 
 ### Step 5: Build and Push Container Images
@@ -295,7 +295,118 @@ This creates an Azure AI Foundry instance, project, and a connection to the MCP 
 
 ## Section 2: Setup Foundry
 
-Further Foundry configuration steps will be added here.
+### 1. Access the Foundry Portal
+
+Open your Foundry instance:
+
+1. Navigate to https://portal.azure.com
+2. Sign in with your Azure credentials
+3. Search for your Foundry instance name (value of `$FOUNDRY_INSTANCE_NAME`)
+4. Select the Azure AI Foundry resource from the search results
+5. On the Overview page, click the "Launch studio" button to access the Foundry Portal
+6. In the Foundry Portal, ensure the new Foundry experience is enabled by using the switch in the title bar
+7. Select your project (named with the value of `$FOUNDRY_PROJECT_NAME`)
+
+### 2. Create an Agent
+
+Create an agent through the Azure AI Foundry Studio:
+
+1. In the upper navigation bar, click "Build"
+2. In your project, go to "Agents" in the left navigation
+3. Click "New agent" or "Create agent"
+4. Configure the agent:
+   - **Name**: `survey-data-agent`
+   - **Model**: Select a chat model (e.g., `gpt-4o-mini`, `gpt-4o`, or `gpt-4`)
+   - **Instructions**: Add the following system instructions:
+     ```
+     You are a helpful assistant with knowledge about surveys related to the Electrification industry.
+
+     You dont answer questions outside those relating to data for the survey and customers. If a request comes in that is outside your scope of answering, politely decline to answer.
+             
+     # Step 1: Generate a SQL Query to gather results for the User Request
+     The Table structure looks like this:
+     <Insert DDL for Create table on target table(s)>
+
+     ## Rules
+     <Indicate special rules for how data in the various columns should be interpreted>
+
+     When generating SQL following these rules:
+     - Do NOT use GROUP BY clauses
+     - Do NOT use TOP
+     - Do NOT use aggregation functions (AVG, SUM, COUNT, MAX, MIN)
+     - Do NOT use HAVING clauses
+     - Generate only SELECT queries that return individual records (rows) with only the columns from the schema above
+     - DTE is the name of the power company and not a customer. If mentioned ignore and do not filter on it.
+
+     # Step 2: Generate a response
+     Pass the query to associated Tool. You will receive a JSON response containing the data for the request. Follow these rules when responding:
+     - Use only the data provided
+     - Respond to questions from the user accurately and in a human-like way with the data results provided
+     - The response should be natural sounding, friendly and conversational.
+
+     ## Examples
+     Example 1:
+     User asks: 'how many surveys were given to detroit, Ferndale, dearborn heights, and grand rapids'
+     Data received shows 634 surveys for Detroit, 266 for Grand Rapids, 44 for Dearborn Heights, and 20 for Ferndale.
+     Response should be:
+       A total of 964 surveys were given out among the given cities. Here is a breakdown:
+         - Detroit: 634 surveys
+         - Grand Rapids: 266 surveys
+         - Dearborn Heights: 44 surveys
+         - Ferndale: 20 surveys
+       Would you like to know more?
+             
+     Example 2:
+     Users asks: what is the worst thing customers in detroit have said about DTE
+     Data received shows 150 customers mentioned high prices, 100 mentioned poor customer service, and 50 mentioned outages.
+     Response should be limited to the three most common complaints by theme:
+     Detroit customers' worst feedback about DTE consistently centers on:
+       • Extremely high and increasing bills, often described as unjustified, egregious, or outrageous, including charges of $200–$800+ per month for small apartments or single-person households  
+       • Bills rising sharply despite little or no change in usage, with some customers reporting doubled or tripled costs or unexplained jumps from $100 to $300+  
+       • Lack of transparency around pricing, fees, peak-hour charges, and rate increases, with many customers saying DTE cannot clearly explain why bills are so high
+
+     Would you like to know more?
+
+     ## Content Rules
+     Ensure the following rules are followed for the content of the response:
+     - Never include customers personally identifiable information in the response (no address, last name, phone number, email, etc).
+     - When representing numbers use numerals. Do not spell out the number.
+
+     Respond in markdown format only. No extra commentary or citation.
+     ```
+   - **Description**: `AI assistant for analyzing survey data`
+5. Click "Create" or "Save"
+
+### 3. Verify the MCP Connection
+
+Check that the MCP server connection is configured:
+
+1. In your project, go to "Connected resources" or "Connections" in the left navigation
+2. Verify that the MCP server connection is listed
+3. The connection should point to your MCP Container App URL
+
+### 4. Test the Agent
+
+Test the agent in the playground:
+
+1. In your project, go to "Agents" in the left navigation
+2. Select the `survey-data-agent` agent you created
+3. Click "Test in playground" or "Open in playground"
+4. Try asking a question about the survey data
+5. Verify that the agent can access the MCP tools and query the data
+
+## Section 3: API Development
+
+### Running the API Locally
+
+```bash
+cd Farrellsoft.Example.SurveyDataApi
+dotnet run
+```
+
+### Configuration
+
+The API requires database configuration in `appsettings.json` or user secrets.
 
 ## Next Steps
 

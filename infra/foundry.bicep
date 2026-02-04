@@ -18,7 +18,7 @@ param tags object = {
 }
 
 // Azure AI Foundry Instance (CognitiveServices Account)
-resource aiFoundry 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
+resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
   name: instanceName
   location: location
   tags: tags
@@ -32,6 +32,7 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   properties: {
     customSubDomainName: instanceName
     publicNetworkAccess: 'Enabled'
+    allowProjectManagement: true
   }
 }
 
