@@ -7,7 +7,7 @@ using Farrellsoft.Example.SurveyDataLoad.Models;
 using Farrellsoft.Example.SurveyDataLoad.Data;
 using Farrellsoft.Example.SurveyDataLoad.Entities;
 
-const string csvFilePath = "Dashboard_Export_RNPS_2025.csv";
+const string csvFilePath = "survey_data.csv";
 
 // Helper method to convert sentiment text to numeric rating
 static short? ConvertSentimentToRating(string? sentiment)
@@ -59,10 +59,9 @@ using var dbContext = new SurveyDbContext(optionsBuilder.Options);
 
 var entities = records.Select(r => new RnpsSurveyRecord
 {
-    RecordId = RnpsSurveyRecord.GenerateRecordId(r.PartnerId, r.Name, r.SurveyMonth, r.SurveyYear, r.SurveySeason),
+    RecordId = RnpsSurveyRecord.GenerateRecordId(r.PartnerId, r.SurveyMonth, r.SurveyYear, r.SurveySeason),
     Age = r.Age,
     PartnerId = r.PartnerId,
-    Name = r.Name,
     IsLowIncome = r.IsLowIncome,
     City = r.City,
     ZipCode = r.ZipCode,
