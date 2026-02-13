@@ -10,7 +10,6 @@ public class RnpsSurveyRecord
     public Guid RecordId { get; set; }
     public short? Age { get; set; }
     public long PartnerId { get; set; }
-    public string Name { get; set; } = string.Empty;
     public bool? IsLowIncome { get; set; }
     public string? City { get; set; }
     public string? ZipCode { get; set; }
@@ -26,9 +25,9 @@ public class RnpsSurveyRecord
     public short SurveyYear { get; set; }
     public string SurveySeason { get; set; } = string.Empty;
 
-    public static Guid GenerateRecordId(long partnerId, string name, string month, short year, string season)
+    public static Guid GenerateRecordId(long partnerId, string month, short year, string season)
     {
-        var input = $"{partnerId}|{name}|{month}|{year}|{season}";
+        var input = $"{partnerId}|{month}|{year}|{season}";
         var hash = MD5.HashData(Encoding.UTF8.GetBytes(input));
         return new Guid(hash);
     }
