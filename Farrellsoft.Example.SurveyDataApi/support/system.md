@@ -8,7 +8,6 @@ CREATE TABLE [dbo].[RnpsSurveyRecords](
 	[RecordId] [uniqueidentifier] NOT NULL,
 	[Age] [smallint] NULL,
 	[PartnerId] [bigint] NOT NULL,
-	[Name] [nvarchar](max) NOT NULL,
 	[IsLowIncome] [bit] NULL,
 	[City] [nvarchar](max) NULL,
 	[ZipCode] [nvarchar](max) NULL,

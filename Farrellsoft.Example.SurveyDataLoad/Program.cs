@@ -2,7 +2,6 @@ using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Farrellsoft.Example.SurveyDataLoad.Models;
 using Farrellsoft.Example.SurveyDataLoad.Data;
 using Farrellsoft.Example.SurveyDataLoad.Entities;
@@ -24,13 +23,23 @@ static short? ConvertSentimentToRating(string? sentiment)
     };
 }
 
-// Load configuration
-var configuration = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddUserSecrets<Program>()
-    .Build();
+// Parse command-line arguments for --server and --database
+static string? GetArgValue(string[] args, string key)
+{
+    for (int i = 0; i < args.Length - 1; i++)
+    {
+        if (args[i].Equals(key, StringComparison.OrdinalIgnoreCase))
+            return args[i + 1];
+    }
+    return null;
+}
 
-var connectionString = configuration["ConnectionStrings:SurveyDatabase"];
+var server = GetArgValue(args, "--server")
+    ?? throw new InvalidOperationException("Missing required argument: --server");
+var database = GetArgValue(args, "--database")
+    ?? throw new InvalidOperationException("Missing required argument: --database");
+
+var connectionString = $"Server=tcp:{server},1433;Initial Catalog={database};Encrypt=True;TrustServerCertificate=False;Authentication=Active Directory Default;";
 
 // Read CSV
 var config = new CsvConfiguration(CultureInfo.InvariantCulture)
