@@ -43,7 +43,6 @@ output containerAppEnvironmentName string = 'cae-${appName}-${shortLocation}-${s
 output containerAppApiName string = 'aca-${appName}-api-${shortLocation}-${suffix}'
 output containerAppMcpName string = 'aca-${appName}-mcp-${shortLocation}-${suffix}'
 output foundryAccountName string = 'foundry-${appName}-${shortLocation}-${suffix}'
-output staticWebAppName string = 'static-${appName}-${shortLocation}-${suffix}'
 
 // ---------------------------------------------------------------------------
 // Resources that do NOT allow dashes

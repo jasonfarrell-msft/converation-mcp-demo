@@ -117,17 +117,6 @@ module acrRoleAssignments 'modules/acr-role-assignments.bicep' = {
 }
 
 // ---------------------------------------------------------------------------
-// Static Web App
-// ---------------------------------------------------------------------------
-module staticWebApp 'modules/static-web-app.bicep' = {
-  name: 'staticWebApp'
-  params: {
-    staticWebAppName: naming.outputs.staticWebAppName
-    location: location
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Outputs
 // ---------------------------------------------------------------------------
 output sqlServerFqdn string = sql.outputs.sqlServerFqdn
@@ -136,4 +125,3 @@ output aiServicesEndpoint string = foundry.outputs.aiServicesEndpoint
 output containerRegistryLoginServer string = containerRegistry.outputs.loginServer
 output apiAppFqdn string = containerApps.outputs.apiAppFqdn
 output mcpAppFqdn string = containerApps.outputs.mcpAppFqdn
-output staticWebAppHostname string = staticWebApp.outputs.defaultHostname

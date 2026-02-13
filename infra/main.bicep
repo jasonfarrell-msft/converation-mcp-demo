@@ -78,4 +78,3 @@ output aiServicesEndpoint string = group.outputs.aiServicesEndpoint
 output containerRegistryLoginServer string = group.outputs.containerRegistryLoginServer
 output apiAppFqdn string = group.outputs.apiAppFqdn
 output mcpAppFqdn string = group.outputs.mcpAppFqdn
-output staticWebAppHostname string = group.outputs.staticWebAppHostname

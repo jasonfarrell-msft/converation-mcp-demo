@@ -269,11 +269,14 @@ az containerapp update \
 
 Now that the MCP server is deployed and running, connect it to the Foundry agent so the agent can execute SQL queries against the survey database.
 
-1. Navigate to the [Azure AI Foundry](https://ai.azure.com) portal and open the agent created in Step 2.
+1. Navigate to the [Azure AI Foundry](https://ai.azure.com) portal and open the Foundry project created previously.
 2. In the agent configuration, scroll to the **Tools** section.
-3. Click **Add tool** and select **MCP Server** as the tool type.
+3. Click **Connect a tool** and select the **Custom** tab.
+4. From here select **Model Conext Protocol (MCP)** from the available options. Press **Create**
 4. Configure the MCP server connection:
-   - **Endpoint URL** — Enter the FQDN of the MCP Container App followed by `/sse` (e.g., `https://<your-mcp-container-app-fqdn>/sse`).
+   - **Name** - freeform field used to identify the MCP connection
+   - **Remote MCP Server endpoint** — Enter the FQDN of the MCP Container App
+   - **Authentication** - select *Unauthenticated* - this is for simplicity
 5. Click **Save** to save the agent configuration.
 
 You can find the MCP Container App's FQDN by running:
@@ -284,4 +287,69 @@ az containerapp show \
   --resource-group <your-resource-group> \
   --query "properties.configuration.ingress.fqdn" \
   --output tsv
+```
+
+On the very next screen you will see the configuration details of the MCP connection shown. In the upper right, there is a dropdown **Use in agent**. Select this and pick the agent you created previously.
+
+Your agent is now connected to the MCP tool and can use it as needed during processing.
+
+## 7. Run the Frontend
+
+The frontend is a static HTML/CSS/JavaScript application located in the `frontend/` folder. Before running it, update the API endpoint in `frontend/app.js` to point to your deployed API Container App:
+
+```javascript
+const API_URL = 'https://<your-api-container-app-fqdn>/query';
+```
+
+Replace `<your-api-container-app-fqdn>` with the FQDN of your API Container App. You can retrieve it by running:
+
+```bash
+az containerapp show \
+  --name <your-api-container-app-name> \
+  --resource-group <your-resource-group> \
+  --query "properties.configuration.ingress.fqdn" \
+  --output tsv
+```
+
+To run the frontend locally, serve the files with any static file server. For example, using Python:
+
+```bash
+cd frontend
+python3 -m http.server 8080
+```
+
+Then open your browser to [http://localhost:8080](http://localhost:8080).
+
+### Installing Python (if not already installed)
+
+Check whether Python is available by running `python3 --version`. If the command is not found, follow the steps for your operating system:
+
+**macOS**
+
+```bash
+brew install python
+```
+
+If you don't have Homebrew, install it first from [https://brew.sh](https://brew.sh).
+
+**Windows**
+
+Download and run the installer from [https://www.python.org/downloads/](https://www.python.org/downloads/). During installation, make sure to check **Add Python to PATH**.
+
+Alternatively, install via `winget`:
+
+```powershell
+winget install Python.Python.3.12
+```
+
+**Linux (Debian/Ubuntu)**
+
+```bash
+sudo apt update && sudo apt install -y python3
+```
+
+**Linux (Fedora)**
+
+```bash
+sudo dnf install -y python3
 ```
