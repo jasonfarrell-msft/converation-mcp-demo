@@ -3,10 +3,12 @@ using Farrellsoft.Examples.SurveyDataMcp.Providers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register QueryDataProvider with connection string from configuration
-var connectionString = builder.Configuration["SqlConnectionString"] 
-    ?? throw new InvalidOperationException("Connection string 'SqlConnectionString' not found.");
-builder.Services.AddSingleton(new QueryDataProvider(connectionString));
+// Register QueryDataProvider with SQL Server and database from configuration
+var sqlServer = builder.Configuration["SqlServer"] 
+    ?? throw new InvalidOperationException("'SqlServer' configuration value not found.");
+var sqlDatabase = builder.Configuration["SqlDatabase"] 
+    ?? throw new InvalidOperationException("'SqlDatabase' configuration value not found.");
+builder.Services.AddSingleton(new QueryDataProvider(sqlServer, sqlDatabase));
 
 // Add MCP server services with HTTP/SSE transport
 builder.Services

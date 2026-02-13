@@ -161,3 +161,127 @@ az containerapp update \
 | `FoundryEndpoint` | The URI to the Foundry project. |
 | `DeploymentName` | The name of the deployed chat model (provided as output from the Bicep deployment in Step 1). |
 | `AgentName` | The name of the agent to target. |
+
+> **Note:** After deploying, verify that the new revision reaches a **Running** state in the Container App. You can check this in the Azure Portal under the Container App's **Revisions** blade, or by running:
+>
+> ```bash
+> az containerapp revision list \
+>   --name <your-container-app-name> \
+>   --resource-group <your-resource-group> \
+>   --output table
+> ```
+
+## 5. Deploy MCP Server
+
+The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) is an open standard that allows LLMs to interact with external tools and data sources. In this project, the MCP server acts as a bridge between the Foundry agent and the SQL database. When a user asks a question, the LLM generates a SQL query and invokes the MCP server to execute it against the database. The results are returned to the agent, which uses them to ground its response — forming a retrieval-augmented generation (RAG) workflow.
+
+### Build the Container Image
+
+From the root of the repository, build the MCP server Docker image and push it to Azure Container Registry:
+
+```bash
+az acr build \
+  --registry <your-acr-name> \
+  --image survey-data-mcp:v1 \
+  ./Farrellsoft.Example.SurveyDataMcp
+```
+
+Replace `<your-acr-name>` with the Azure Container Registry name from the `az deployment` command output in Step 1.
+
+### Register the Container Registry with Container Apps
+
+The Bicep deployment does not configure ACR on the Container Apps (they start with a placeholder image). Register your ACR with the MCP Container App so it can pull images using its system-assigned managed identity:
+
+```bash
+az containerapp registry set \
+  --name <your-mcp-container-app-name> \
+  --resource-group <your-resource-group> \
+  --server <your-acr-name>.azurecr.io \
+  --identity system
+```
+
+### Grant SQL Server Access to the Managed Identity
+
+The MCP Container App uses its system-assigned managed identity to authenticate with SQL Server. Assign the managed identity the appropriate Azure RBAC role to allow it to read data from the database.
+
+1. Get the principal ID of the MCP Container App's system-assigned managed identity:
+
+```bash
+az containerapp show \
+  --name <your-mcp-container-app-name> \
+  --resource-group <your-resource-group> \
+  --query "identity.principalId" \
+  --output tsv
+```
+
+2. Get the resource ID of the SQL Server:
+
+```bash
+az sql server show \
+  --name <your-sql-server> \
+  --resource-group <your-resource-group> \
+  --query "id" \
+  --output tsv
+```
+
+3. Assign the **SQL Server Contributor** role to the managed identity, scoped to the SQL Server:
+
+```bash
+az role assignment create \
+  --assignee <principal-id> \
+  --role "SQL Server Contributor" \
+  --scope <sql-server-resource-id>
+```
+
+Replace `<principal-id>` with the output from step 1 and `<sql-server-resource-id>` with the output from step 2.
+
+### Deploy to Azure Container Apps
+
+Deploy a new revision of the MCP Container App using the newly built image:
+
+```bash
+az containerapp update \
+  --name <your-mcp-container-app-name> \
+  --resource-group <your-resource-group> \
+  --image <your-acr-name>.azurecr.io/survey-data-mcp:v1 \
+  --min-replicas 1 \
+  --max-replicas 3 \
+  --set-env-vars \
+    "SqlServer=<your-sql-server>.database.windows.net" \
+    "SqlDatabase=<your-database-name>"
+```
+
+| Environment Variable | Description |
+|---|---|
+| `SqlServer` | The fully qualified hostname of the SQL Server instance. |
+| `SqlDatabase` | The name of the database containing the survey data. |
+
+> **Note:** After deploying, verify that the new revision reaches a **Running** state in the Container App. You can check this in the Azure Portal under the Container App's **Revisions** blade, or by running:
+>
+> ```bash
+> az containerapp revision list \
+>   --name <your-mcp-container-app-name> \
+>   --resource-group <your-resource-group> \
+>   --output table
+> ```
+
+## 6. Configure Agent to Use MCP Server
+
+Now that the MCP server is deployed and running, connect it to the Foundry agent so the agent can execute SQL queries against the survey database.
+
+1. Navigate to the [Azure AI Foundry](https://ai.azure.com) portal and open the agent created in Step 2.
+2. In the agent configuration, scroll to the **Tools** section.
+3. Click **Add tool** and select **MCP Server** as the tool type.
+4. Configure the MCP server connection:
+   - **Endpoint URL** — Enter the FQDN of the MCP Container App followed by `/sse` (e.g., `https://<your-mcp-container-app-fqdn>/sse`).
+5. Click **Save** to save the agent configuration.
+
+You can find the MCP Container App's FQDN by running:
+
+```bash
+az containerapp show \
+  --name <your-mcp-container-app-name> \
+  --resource-group <your-resource-group> \
+  --query "properties.configuration.ingress.fqdn" \
+  --output tsv
+```
