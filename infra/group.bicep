@@ -76,6 +76,7 @@ module foundry 'modules/foundry.bicep' = {
     foundryAccountName: naming.outputs.foundryAccountName
     location: location
     modelDeploymentName: modelDeploymentName
+    apiPrincipalId: containerApps.outputs.apiPrincipalId
   }
 }
 

@@ -49,6 +49,17 @@ resource containerAppApi 'Microsoft.App/containerApps@2025-07-01' = {
         external: true
         targetPort: 8080
         transport: 'http'
+        corsPolicy: {
+          allowedOrigins: [
+            'http://localhost:8080'
+          ]
+          allowedMethods: [
+            '*'
+          ]
+          allowedHeaders: [
+            '*'
+          ]
+        }
       }
     }
     template: {
@@ -103,7 +114,7 @@ resource containerAppMcp 'Microsoft.App/containerApps@2025-07-01' = {
         }
       ]
       scale: {
-        minReplicas: 0
+        minReplicas: 1
         maxReplicas: 3
       }
     }

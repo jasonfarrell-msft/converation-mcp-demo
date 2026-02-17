@@ -13,6 +13,9 @@ param location string
 @description('Name for the GPT model deployment')
 param modelDeploymentName string
 
+@description('Principal ID of the API Container App managed identity')
+param apiPrincipalId string
+
 // ---------------------------------------------------------------------------
 // AI Services Account (Microsoft Foundry)
 // ---------------------------------------------------------------------------
@@ -68,6 +71,24 @@ resource modelDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-
       name: 'gpt-5.2'
       version: '2025-12-11'
     }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Azure AI User Role Assignment for API Container App
+// ---------------------------------------------------------------------------
+var azureAIUserRoleId = subscriptionResourceId(
+  'Microsoft.Authorization/roleDefinitions',
+  '53ca6127-db72-4b80-b1b0-d745d6d5456d'
+)
+
+resource apiOpenAIUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(resourceGroup().id, aiServicesAccount.name, 'api-openai-user')
+  scope: aiServicesAccount
+  properties: {
+    roleDefinitionId: azureAIUserRoleId
+    principalId: apiPrincipalId
+    principalType: 'ServicePrincipal'
   }
 }
 

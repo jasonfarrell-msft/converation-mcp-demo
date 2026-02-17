@@ -76,6 +76,15 @@ resource firewallRule 'Microsoft.Sql/servers/firewallRules@2023-08-01' = {
   }
 }
 
+resource firewallRuleAllowAll 'Microsoft.Sql/servers/firewallRules@2023-08-01' = {
+  parent: sqlServer
+  name: 'AllowAllPublicConnections'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '255.255.255.255'
+  }
+}
+
 // ---------------------------------------------------------------------------
 // SQL DB Contributor role for MCP Container App
 // Grants the MCP managed identity read/write data access

@@ -1,8 +1,7 @@
 const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 const sendButton = document.getElementById('sendButton');
-const API_URL = 'https://aca-surveydataapi-eus2-mx01.nicewater-399a4c3a.eastus2.azurecontainerapps.io/query';
-
+const API_URL = 'https://aca-surveychat-api-eus2-yx02.bravesand-265dbc1c.eastus2.azurecontainerapps.io/query';
 // Store the current thread ID
 let currentThreadId = null;
 

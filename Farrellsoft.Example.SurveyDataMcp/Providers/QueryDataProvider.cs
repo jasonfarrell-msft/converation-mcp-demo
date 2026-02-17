@@ -20,20 +20,28 @@ public class QueryDataProvider
     {
         var connectionString = new SqlConnectionStringBuilder
         {
-            DataSource = _server,
+            DataSource = $"tcp:{_server},1433",
             InitialCatalog = _database,
             Encrypt = true,
-            TrustServerCertificate = false
+            TrustServerCertificate = false,
+            PersistSecurityInfo = false,
+            MultipleActiveResultSets = false,
+            Authentication = SqlAuthenticationMethod.ActiveDirectoryDefault
         }.ConnectionString;
 
+        Console.WriteLine($"Connecting to SQL Server with connection string: {connectionString}");
+        try
+        {
         await using var connection = new SqlConnection(connectionString);
-        var credential = new DefaultAzureCredential();
-        connection.AccessToken = (await credential.GetTokenAsync(
-            new Azure.Core.TokenRequestContext(["https://database.windows.net/.default"]))).Token;
-
         await connection.OpenAsync();
 
         var results = await connection.QueryAsync<RpnsSurveyDataRecord>(query);
         return results.ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error connecting to SQL Server: {ex.Message}");
+            throw;
+        }
     }
 }

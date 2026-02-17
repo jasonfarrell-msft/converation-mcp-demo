@@ -24,4 +24,19 @@ var app = builder.Build();
 // Map MCP endpoints (creates /mcp for SSE and /mcp/message for JSON-RPC)
 app.MapMcp();
 
+app.MapGet("/healthz", () => Results.Ok("I am working"));
+
+app.MapGet("/test", async (QueryDataProvider provider) =>
+{
+    try
+    {
+        await provider.QueryAsync("SELECT 1");
+        return Results.Ok("Successfully connected to SQL Server");
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Failed to connect to SQL Server: {ex.Message}");
+    }
+});
+
 app.Run();
