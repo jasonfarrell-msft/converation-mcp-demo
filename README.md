@@ -200,40 +200,23 @@ az containerapp registry set \
   --identity system
 ```
 
-### Grant SQL Server Access to the Managed Identity
+### Grant SQL Database Access to the Managed Identity
 
-The MCP Container App uses its system-assigned managed identity to authenticate with SQL Server. Assign the managed identity the appropriate Azure RBAC role to allow it to read data from the database.
+The MCP Container App uses its system-assigned managed identity to authenticate with SQL Server via Microsoft Entra. You must create a database user for this identity and grant it read access.
 
-1. Get the principal ID of the MCP Container App's system-assigned managed identity:
+1. Open the [Azure Portal](https://portal.azure.com) and navigate to your SQL Database (`<your-database-name>`).
+2. In the left menu, select **Query editor**.
+3. Log in as the SQL admin (the Entra user configured during deployment).
+4. Run the following SQL to create a contained database user for the MCP Container App's managed identity and grant it read access:
 
-```bash
-az containerapp show \
-  --name <your-mcp-container-app-name> \
-  --resource-group <your-resource-group> \
-  --query "identity.principalId" \
-  --output tsv
+```sql
+CREATE USER [<your-mcp-container-app-name>] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER [<your-mcp-container-app-name>];
 ```
 
-2. Get the resource ID of the SQL Server:
+Replace `<your-mcp-container-app-name>` with the name of the MCP Container App created by the Bicep deployment (e.g., `aca-surveychat-mcp-eus2-yx02`).
 
-```bash
-az sql server show \
-  --name <your-sql-server> \
-  --resource-group <your-resource-group> \
-  --query "id" \
-  --output tsv
-```
-
-3. Assign the **SQL Server Contributor** role to the managed identity, scoped to the SQL Server:
-
-```bash
-az role assignment create \
-  --assignee <principal-id> \
-  --role "SQL Server Contributor" \
-  --scope <sql-server-resource-id>
-```
-
-Replace `<principal-id>` with the output from step 1 and `<sql-server-resource-id>` with the output from step 2.
+> **Important:** The user name in the SQL statement must exactly match the Container App resource name — this is how Azure maps the system-assigned managed identity to a database principal.
 
 ### Deploy to Azure Container Apps
 
