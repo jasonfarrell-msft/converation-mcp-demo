@@ -5,6 +5,10 @@
 - Access to an Azure tenant with **Contributor** (or similar) role
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli), logged in as a valid user in the target tenant
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- The **Object ID** and **email address** of a Microsoft Entra user who will serve as the SQL Server administrator. You can find the Object ID in the Azure Portal under **Microsoft Entra ID > Users > [user] > Properties**, or by running:
+  ```bash
+  az ad user show --id <user-email> --query id --output tsv
+  ```
 
 ## 1. Setup Azure Components
 
