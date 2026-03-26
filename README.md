@@ -60,7 +60,7 @@ From within the `Farrellsoft.Example.SurveyDataLoad/` folder, follow the steps b
 
 ### Prerequisites
 
-Ensure you are logged in to the Azure CLI as the user configured as the SQL admin (Entra ID authentication is used):
+Ensure you are logged in to the Azure CLI as a user with access to the SQL database (e.g., the SQL admin or a user with `db_owner` / `db_datawriter` permissions):
 
 ```bash
 az login
@@ -155,7 +155,6 @@ az containerapp update \
   --set-env-vars \
     "Key=secretref:foundry-key" \
     "FoundryEndpoint=<your-foundry-project-uri>" \
-    "DeploymentName=<your-chat-model-deployment-name>" \
     "AgentName=<your-agent-name>"
 ```
 
@@ -163,7 +162,6 @@ az containerapp update \
 |---|---|
 | `Key` | Reference to the `foundry-key` secret stored in the Container App. |
 | `FoundryEndpoint` | The URI to the Foundry project. |
-| `DeploymentName` | The name of the deployed chat model (provided as output from the Bicep deployment in Step 1). |
 | `AgentName` | The name of the agent to target. |
 
 > **Note:** After deploying, verify that the new revision reaches a **Running** state in the Container App. You can check this in the Azure Portal under the Container App's **Revisions** blade, or by running:
@@ -257,26 +255,40 @@ az containerapp update \
 Now that the MCP server is deployed and running, connect it to the Foundry agent so the agent can execute SQL queries against the survey database.
 
 1. Navigate to the [Azure AI Foundry](https://ai.azure.com) portal and open the Foundry project created previously.
-2. In the agent configuration, scroll to the **Tools** section.
-3. Click **Connect a tool** and select the **Custom** tab.
-4. From here select **Model Conext Protocol (MCP)** from the available options. Press **Create**
-4. Configure the MCP server connection:
-   - **Name** - freeform field used to identify the MCP connection
-   - **Remote MCP Server endpoint** — Enter the FQDN of the MCP Container App
-   - **Authentication** - select *Unauthenticated* - this is for simplicity
-5. Click **Save** to save the agent configuration.
+2. In the top navigation bar, select **Build**, then select **Agents** to view the list of agents.
+3. Select the agent you created in Step 2.
+4. Expand the **Tools** section.
+5. Click **Add**.
+6. Select **Custom**.
+7. Choose **Model Context Protocol (MCP)**.
+8. Click **Create**.
 
-You can find the MCP Container App's FQDN by running:
+On the next dialog, fill in the following:
 
-```bash
-az containerapp show \
-  --name <your-mcp-container-app-name> \
-  --resource-group <your-resource-group> \
-  --query "properties.configuration.ingress.fqdn" \
-  --output tsv
-```
+- **Name** — Provide a unique, readable name to identify this MCP connection.
+- **Base URL** — Enter the FQDN of your MCP Container App. You can retrieve it by running:
 
-On the very next screen you will see the configuration details of the MCP connection shown. In the upper right, there is a dropdown **Use in agent**. Select this and pick the agent you created previously.
+  ```bash
+  az containerapp show \
+    --name <your-mcp-container-app-name> \
+    --resource-group <your-resource-group> \
+    --query "properties.configuration.ingress.fqdn" \
+    --output tsv
+  ```
+
+- **Authentication** — Select **Unauthenticated**.
+
+Click **Connect** to save the connection.
+
+### Configure Tool Approval
+
+Once the MCP tool is saved:
+
+1. Click the **three dots menu** (⋯) next to the tool.
+2. Select **Configure**.
+3. Under **Require approval before using tools**, choose **Always approve all tools**.
+4. Click **Add**.
+5. Save the Agent
 
 Your agent is now connected to the MCP tool and can use it as needed during processing.
 

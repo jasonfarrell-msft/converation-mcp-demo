@@ -29,6 +29,24 @@ param sqlAdminObjectId string
 @description('Login (email) of the Azure AD SQL admin')
 param sqlAdminLogin string
 
+@description('Publisher email for API Management')
+param apimPublisherEmail string
+
+@description('Publisher organization name for API Management')
+param apimPublisherName string
+
+@description('Container image for the API app')
+param apiImageName string
+
+@description('Container image for the MCP app')
+param mcpImageName string
+
+@description('Agent name for the API app')
+param agentName string
+
+@description('Location for cross-region resources')
+param resourceLocation string
+
 // ---------------------------------------------------------------------------
 // Naming - derive resource group name inline (subscription scope cannot
 // call resource-group-scoped modules)
@@ -65,6 +83,25 @@ module group 'group.bicep' = {
     modelDeploymentName: modelDeploymentName
     sqlAdminObjectId: sqlAdminObjectId
     sqlAdminLogin: sqlAdminLogin
+    apimPublisherEmail: apimPublisherEmail
+    apimPublisherName: apimPublisherName
+    apiImageName: apiImageName
+    mcpImageName: mcpImageName
+    agentName: agentName
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Deploy cross-region resources into the resource group
+// ---------------------------------------------------------------------------
+module crossRegion 'cross-region.bicep' = {
+  name: 'cross-region-deployment'
+  scope: resourceGroup
+  params: {
+    appName: appName
+    suffix: suffix
+    apimPublisherName: apimPublisherName
+    resourceLocation: resourceLocation
   }
 }
 
@@ -78,3 +115,4 @@ output aiServicesEndpoint string = group.outputs.aiServicesEndpoint
 output containerRegistryLoginServer string = group.outputs.containerRegistryLoginServer
 output apiAppFqdn string = group.outputs.apiAppFqdn
 output mcpAppFqdn string = group.outputs.mcpAppFqdn
+output apimGatewayUrl string = group.outputs.apimGatewayUrl

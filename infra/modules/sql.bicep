@@ -18,9 +18,6 @@ param azureADAdminObjectId string
 @description('Login name (email) for the Azure AD admin user')
 param azureADAdminLogin string
 
-@description('Principal ID of the MCP Container App managed identity for data access')
-param mcpPrincipalId string
-
 // ---------------------------------------------------------------------------
 // SQL Server — Azure AD-only authentication (required by policy)
 // ---------------------------------------------------------------------------
@@ -86,27 +83,10 @@ resource firewallRuleAllowAll 'Microsoft.Sql/servers/firewallRules@2023-08-01' =
 }
 
 // ---------------------------------------------------------------------------
-// SQL DB Contributor role for MCP Container App
-// Grants the MCP managed identity read/write data access
-// ---------------------------------------------------------------------------
-var sqlDbContributorRoleId = subscriptionResourceId(
-  'Microsoft.Authorization/roleDefinitions',
-  '9b7fa17d-e63e-47b0-bb0a-15c516ac86ec'
-)
-
-resource sqlRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(sqlDatabase.id, mcpPrincipalId, '9b7fa17d-e63e-47b0-bb0a-15c516ac86ec')
-  scope: sqlServer
-  properties: {
-    roleDefinitionId: sqlDbContributorRoleId
-    principalId: mcpPrincipalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Outputs
 // ---------------------------------------------------------------------------
 output sqlServerId string = sqlServer.id
+output sqlServerName string = sqlServer.name
 output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
+output sqlDatabaseName string = sqlDatabase.name
 output sqlDatabaseId string = sqlDatabase.id

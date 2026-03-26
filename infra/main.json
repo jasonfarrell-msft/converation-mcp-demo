@@ -1,0 +1,1837 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.41.2.15936",
+      "templateHash": "15561629199503103920"
+    }
+  },
+  "parameters": {
+    "appName": {
+      "type": "string",
+      "metadata": {
+        "description": "Application name used in resource naming"
+      }
+    },
+    "location": {
+      "type": "string",
+      "allowedValues": [
+        "eastus2",
+        "westus",
+        "southcentralus"
+      ],
+      "metadata": {
+        "description": "Azure region for deployment"
+      }
+    },
+    "suffix": {
+      "type": "string",
+      "minLength": 3,
+      "metadata": {
+        "description": "Environment suffix"
+      }
+    },
+    "modelDeploymentName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name for the GPT model deployment in Foundry"
+      }
+    },
+    "sqlAdminObjectId": {
+      "type": "string",
+      "metadata": {
+        "description": "Object ID of the Azure AD SQL admin"
+      }
+    },
+    "sqlAdminLogin": {
+      "type": "string",
+      "metadata": {
+        "description": "Login (email) of the Azure AD SQL admin"
+      }
+    },
+    "apimPublisherEmail": {
+      "type": "string",
+      "metadata": {
+        "description": "Publisher email for API Management"
+      }
+    },
+    "apimPublisherName": {
+      "type": "string",
+      "metadata": {
+        "description": "Publisher organization name for API Management"
+      }
+    },
+    "apiImageName": {
+      "type": "string",
+      "metadata": {
+        "description": "Container image for the API app"
+      }
+    },
+    "mcpImageName": {
+      "type": "string",
+      "metadata": {
+        "description": "Container image for the MCP app"
+      }
+    },
+    "agentName": {
+      "type": "string",
+      "metadata": {
+        "description": "Agent name for the API app"
+      }
+    },
+    "resourceLocation": {
+      "type": "string",
+      "metadata": {
+        "description": "Location for cross-region resources"
+      }
+    }
+  },
+  "variables": {
+    "locationShortCodes": {
+      "eastus2": "eus2",
+      "westus": "wus",
+      "southcentralus": "sus"
+    },
+    "shortLocation": "[variables('locationShortCodes')[parameters('location')]]",
+    "resourceGroupName": "[format('rg-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2024-03-01",
+      "name": "[variables('resourceGroupName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "SecurityControl": "Ignore"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "group-deployment",
+      "resourceGroup": "[variables('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "appName": {
+            "value": "[parameters('appName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "suffix": {
+            "value": "[parameters('suffix')]"
+          },
+          "modelDeploymentName": {
+            "value": "[parameters('modelDeploymentName')]"
+          },
+          "sqlAdminObjectId": {
+            "value": "[parameters('sqlAdminObjectId')]"
+          },
+          "sqlAdminLogin": {
+            "value": "[parameters('sqlAdminLogin')]"
+          },
+          "apimPublisherEmail": {
+            "value": "[parameters('apimPublisherEmail')]"
+          },
+          "apimPublisherName": {
+            "value": "[parameters('apimPublisherName')]"
+          },
+          "apiImageName": {
+            "value": "[parameters('apiImageName')]"
+          },
+          "mcpImageName": {
+            "value": "[parameters('mcpImageName')]"
+          },
+          "agentName": {
+            "value": "[parameters('agentName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.41.2.15936",
+              "templateHash": "4845955884804434963"
+            }
+          },
+          "parameters": {
+            "appName": {
+              "type": "string",
+              "metadata": {
+                "description": "Application name used in resource naming"
+              }
+            },
+            "location": {
+              "type": "string",
+              "allowedValues": [
+                "eastus2",
+                "westus",
+                "southcentralus"
+              ],
+              "metadata": {
+                "description": "Azure region for deployment"
+              }
+            },
+            "suffix": {
+              "type": "string",
+              "minLength": 3,
+              "metadata": {
+                "description": "Environment suffix"
+              }
+            },
+            "modelDeploymentName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name for the GPT model deployment in Foundry"
+              }
+            },
+            "sqlAdminObjectId": {
+              "type": "string",
+              "metadata": {
+                "description": "Object ID of the Azure AD SQL admin"
+              }
+            },
+            "sqlAdminLogin": {
+              "type": "string",
+              "metadata": {
+                "description": "Login (email) of the Azure AD SQL admin"
+              }
+            },
+            "apimPublisherEmail": {
+              "type": "string",
+              "metadata": {
+                "description": "Publisher email for API Management"
+              }
+            },
+            "apimPublisherName": {
+              "type": "string",
+              "metadata": {
+                "description": "Publisher organization name for API Management"
+              }
+            },
+            "apiImageName": {
+              "type": "string",
+              "metadata": {
+                "description": "Container image for the API app"
+              }
+            },
+            "mcpImageName": {
+              "type": "string",
+              "metadata": {
+                "description": "Container image for the MCP app"
+              }
+            },
+            "agentName": {
+              "type": "string",
+              "metadata": {
+                "description": "Agent name for the API app"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "naming",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "appName": {
+                    "value": "[parameters('appName')]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "suffix": {
+                    "value": "[parameters('suffix')]"
+                  },
+                  "apimPublisherName": {
+                    "value": "[parameters('apimPublisherName')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "8188098646442374602"
+                    }
+                  },
+                  "parameters": {
+                    "appName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Application name used in resource naming"
+                      }
+                    },
+                    "location": {
+                      "type": "string",
+                      "allowedValues": [
+                        "eastus",
+                        "eastus2",
+                        "westus",
+                        "southcentralus"
+                      ],
+                      "metadata": {
+                        "description": "Azure region for deployment"
+                      }
+                    },
+                    "suffix": {
+                      "type": "string",
+                      "minLength": 3,
+                      "metadata": {
+                        "description": "Environment suffix"
+                      }
+                    },
+                    "apimPublisherName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Publisher organization name used for APIM naming"
+                      }
+                    }
+                  },
+                  "variables": {
+                    "locationShortCodes": {
+                      "eastus": "eus",
+                      "eastus2": "eus2",
+                      "westus": "wus",
+                      "southcentralus": "sus"
+                    },
+                    "shortLocation": "[variables('locationShortCodes')[parameters('location')]]",
+                    "storageRawName": "[toLower(format('st{0}{1}{2}', parameters('appName'), variables('shortLocation'), parameters('suffix')))]",
+                    "crRawName": "[format('cr{0}{1}{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                  },
+                  "resources": [],
+                  "outputs": {
+                    "resourceGroupName": {
+                      "type": "string",
+                      "value": "[format('rg-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "sqlServerName": {
+                      "type": "string",
+                      "value": "[format('sqlsvr-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "sqlDatabaseName": {
+                      "type": "string",
+                      "value": "[format('sqldb-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "containerAppEnvironmentName": {
+                      "type": "string",
+                      "value": "[format('cae-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "containerAppApiName": {
+                      "type": "string",
+                      "value": "[format('aca-{0}-api-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "containerAppMcpName": {
+                      "type": "string",
+                      "value": "[format('aca-{0}-mcp-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "foundryAccountName": {
+                      "type": "string",
+                      "value": "[format('foundry-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "apimName": {
+                      "type": "string",
+                      "value": "[format('apim-{0}-{1}-{2}', parameters('apimPublisherName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "apiCenterName": {
+                      "type": "string",
+                      "value": "[format('apic-{0}-{1}-{2}', parameters('apimPublisherName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "userAssignedIdentityName": {
+                      "type": "string",
+                      "value": "[format('uai-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "storageAccountName": {
+                      "type": "string",
+                      "value": "[if(greater(length(variables('storageRawName')), 24), substring(variables('storageRawName'), 0, 24), variables('storageRawName'))]"
+                    },
+                    "containerRegistryName": {
+                      "type": "string",
+                      "value": "[if(greater(length(variables('crRawName')), 50), substring(variables('crRawName'), 0, 50), variables('crRawName'))]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "sql",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "sqlServerName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'naming'), '2025-04-01').outputs.sqlServerName.value]"
+                  },
+                  "sqlDatabaseName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'naming'), '2025-04-01').outputs.sqlDatabaseName.value]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "azureADAdminObjectId": {
+                    "value": "[parameters('sqlAdminObjectId')]"
+                  },
+                  "azureADAdminLogin": {
+                    "value": "[parameters('sqlAdminLogin')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "17661030160116232780"
+                    }
+                  },
+                  "parameters": {
+                    "sqlServerName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the SQL Server"
+                      }
+                    },
+                    "sqlDatabaseName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the SQL Database"
+                      }
+                    },
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Azure region for deployment"
+                      }
+                    },
+                    "azureADAdminObjectId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Object ID of the Azure AD admin user"
+                      }
+                    },
+                    "azureADAdminLogin": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Login name (email) for the Azure AD admin user"
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Sql/servers",
+                      "apiVersion": "2023-08-01",
+                      "name": "[parameters('sqlServerName')]",
+                      "location": "[parameters('location')]",
+                      "tags": {
+                        "SecurityControl": "Ignore"
+                      },
+                      "properties": {
+                        "minimalTlsVersion": "1.2",
+                        "publicNetworkAccess": "Enabled",
+                        "administrators": {
+                          "administratorType": "ActiveDirectory",
+                          "azureADOnlyAuthentication": true,
+                          "login": "[parameters('azureADAdminLogin')]",
+                          "sid": "[parameters('azureADAdminObjectId')]",
+                          "principalType": "User",
+                          "tenantId": "[subscription().tenantId]"
+                        }
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Sql/servers/databases",
+                      "apiVersion": "2023-08-01",
+                      "name": "[format('{0}/{1}', parameters('sqlServerName'), parameters('sqlDatabaseName'))]",
+                      "location": "[parameters('location')]",
+                      "tags": {
+                        "SecurityControl": "Ignore"
+                      },
+                      "sku": {
+                        "name": "Basic",
+                        "tier": "Basic"
+                      },
+                      "properties": {
+                        "collation": "SQL_Latin1_General_CP1_CI_AS",
+                        "maxSizeBytes": 2147483648
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Sql/servers/firewallRules",
+                      "apiVersion": "2023-08-01",
+                      "name": "[format('{0}/{1}', parameters('sqlServerName'), 'AllowAzureServices')]",
+                      "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "0.0.0.0"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Sql/servers/firewallRules",
+                      "apiVersion": "2023-08-01",
+                      "name": "[format('{0}/{1}', parameters('sqlServerName'), 'AllowAllPublicConnections')]",
+                      "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "255.255.255.255"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "sqlServerId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
+                    },
+                    "sqlServerName": {
+                      "type": "string",
+                      "value": "[parameters('sqlServerName')]"
+                    },
+                    "sqlServerFqdn": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.Sql/servers', parameters('sqlServerName')), '2023-08-01').fullyQualifiedDomainName]"
+                    },
+                    "sqlDatabaseName": {
+                      "type": "string",
+                      "value": "[parameters('sqlDatabaseName')]"
+                    },
+                    "sqlDatabaseId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.Sql/servers/databases', parameters('sqlServerName'), parameters('sqlDatabaseName'))]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'naming')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "storage",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "storageAccountName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'naming'), '2025-04-01').outputs.storageAccountName.value]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "16584934101256053571"
+                    }
+                  },
+                  "parameters": {
+                    "storageAccountName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the Storage Account"
+                      }
+                    },
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Azure region for deployment"
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Storage/storageAccounts",
+                      "apiVersion": "2025-06-01",
+                      "name": "[parameters('storageAccountName')]",
+                      "location": "[parameters('location')]",
+                      "tags": {
+                        "SecurityControl": "Ignore"
+                      },
+                      "kind": "StorageV2",
+                      "sku": {
+                        "name": "Standard_LRS"
+                      },
+                      "properties": {
+                        "minimumTlsVersion": "TLS1_2",
+                        "supportsHttpsTrafficOnly": true,
+                        "allowBlobPublicAccess": false,
+                        "accessTier": "Hot"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "storageAccountId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+                    },
+                    "storageAccountName": {
+                      "type": "string",
+                      "value": "[parameters('storageAccountName')]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'naming')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "foundry",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "foundryAccountName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'naming'), '2025-04-01').outputs.foundryAccountName.value]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "modelDeploymentName": {
+                    "value": "[parameters('modelDeploymentName')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "50351033732615369"
+                    }
+                  },
+                  "parameters": {
+                    "foundryAccountName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the Foundry (AI Services) account"
+                      }
+                    },
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Azure region for deployment"
+                      }
+                    },
+                    "modelDeploymentName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name for the GPT model deployment"
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.CognitiveServices/accounts",
+                      "apiVersion": "2025-09-01",
+                      "name": "[parameters('foundryAccountName')]",
+                      "location": "[parameters('location')]",
+                      "tags": {
+                        "SecurityControl": "Ignore"
+                      },
+                      "kind": "AIServices",
+                      "sku": {
+                        "name": "S0"
+                      },
+                      "identity": {
+                        "type": "SystemAssigned"
+                      },
+                      "properties": {
+                        "customSubDomainName": "[parameters('foundryAccountName')]",
+                        "publicNetworkAccess": "Enabled",
+                        "allowProjectManagement": true
+                      }
+                    },
+                    {
+                      "type": "Microsoft.CognitiveServices/accounts/projects",
+                      "apiVersion": "2025-09-01",
+                      "name": "[format('{0}/{1}', parameters('foundryAccountName'), format('{0}-project', parameters('foundryAccountName')))]",
+                      "location": "[parameters('location')]",
+                      "identity": {
+                        "type": "SystemAssigned"
+                      },
+                      "properties": {
+                        "displayName": "[format('{0} Project', parameters('foundryAccountName'))]",
+                        "description": "[format('AI Foundry project for {0}', parameters('foundryAccountName'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.CognitiveServices/accounts', parameters('foundryAccountName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.CognitiveServices/accounts/deployments",
+                      "apiVersion": "2025-09-01",
+                      "name": "[format('{0}/{1}', parameters('foundryAccountName'), parameters('modelDeploymentName'))]",
+                      "sku": {
+                        "name": "GlobalStandard",
+                        "capacity": 10
+                      },
+                      "properties": {
+                        "model": {
+                          "format": "OpenAI",
+                          "name": "gpt-5.2",
+                          "version": "2025-12-11"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.CognitiveServices/accounts', parameters('foundryAccountName'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "aiServicesAccountId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('foundryAccountName'))]"
+                    },
+                    "aiServicesAccountName": {
+                      "type": "string",
+                      "value": "[parameters('foundryAccountName')]"
+                    },
+                    "aiServicesEndpoint": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('foundryAccountName')), '2025-09-01').endpoint]"
+                    },
+                    "foundryProjectEndpoint": {
+                      "type": "string",
+                      "value": "[format('https://{0}.services.ai.azure.com/api/projects/{1}', parameters('foundryAccountName'), format('{0}-project', parameters('foundryAccountName')))]"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('foundryAccountName'), format('{0}-project', parameters('foundryAccountName')))]"
+                    },
+                    "modelDeploymentId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.CognitiveServices/accounts/deployments', parameters('foundryAccountName'), parameters('modelDeploymentName'))]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'naming')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "containerRegistry",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "containerRegistryName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'naming'), '2025-04-01').outputs.containerRegistryName.value]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "7586862263377378379"
+                    }
+                  },
+                  "parameters": {
+                    "containerRegistryName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the Container Registry"
+                      }
+                    },
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Azure region for deployment"
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.ContainerRegistry/registries",
+                      "apiVersion": "2025-11-01",
+                      "name": "[parameters('containerRegistryName')]",
+                      "location": "[parameters('location')]",
+                      "tags": {
+                        "SecurityControl": "Ignore"
+                      },
+                      "sku": {
+                        "name": "Basic"
+                      },
+                      "properties": {
+                        "adminUserEnabled": false
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "containerRegistryId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName'))]"
+                    },
+                    "containerRegistryName": {
+                      "type": "string",
+                      "value": "[parameters('containerRegistryName')]"
+                    },
+                    "loginServer": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2025-11-01').loginServer]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'naming')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "userAssignedIdentity",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "userAssignedIdentityName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'naming'), '2025-04-01').outputs.userAssignedIdentityName.value]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "13751171008357434020"
+                    }
+                  },
+                  "parameters": {
+                    "userAssignedIdentityName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the User-Assigned Managed Identity"
+                      }
+                    },
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Azure region for deployment"
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+                      "apiVersion": "2023-01-31",
+                      "name": "[parameters('userAssignedIdentityName')]",
+                      "location": "[parameters('location')]",
+                      "tags": {
+                        "SecurityControl": "Ignore"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "userAssignedIdentityId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('userAssignedIdentityName'))]"
+                    },
+                    "userAssignedIdentityPrincipalId": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('userAssignedIdentityName')), '2023-01-31').principalId]"
+                    },
+                    "userAssignedIdentityClientId": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('userAssignedIdentityName')), '2023-01-31').clientId]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'naming')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "containerApps",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "containerAppEnvironmentName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'naming'), '2025-04-01').outputs.containerAppEnvironmentName.value]"
+                  },
+                  "containerAppApiName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'naming'), '2025-04-01').outputs.containerAppApiName.value]"
+                  },
+                  "containerAppMcpName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'naming'), '2025-04-01').outputs.containerAppMcpName.value]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "apiImageName": {
+                    "value": "[parameters('apiImageName')]"
+                  },
+                  "mcpImageName": {
+                    "value": "[parameters('mcpImageName')]"
+                  },
+                  "userAssignedIdentityId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'userAssignedIdentity'), '2025-04-01').outputs.userAssignedIdentityId.value]"
+                  },
+                  "containerRegistryServer": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2025-04-01').outputs.loginServer.value]"
+                  },
+                  "foundryProjectEndpoint": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'foundry'), '2025-04-01').outputs.foundryProjectEndpoint.value]"
+                  },
+                  "agentName": {
+                    "value": "[parameters('agentName')]"
+                  },
+                  "sqlServerFqdn": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'sql'), '2025-04-01').outputs.sqlServerFqdn.value]"
+                  },
+                  "sqlDatabaseName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'sql'), '2025-04-01').outputs.sqlDatabaseName.value]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "1886537851279205791"
+                    }
+                  },
+                  "parameters": {
+                    "containerAppEnvironmentName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the Container App Environment"
+                      }
+                    },
+                    "containerAppApiName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the API Container App"
+                      }
+                    },
+                    "containerAppMcpName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the MCP Container App"
+                      }
+                    },
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Azure region for deployment"
+                      }
+                    },
+                    "apiImageName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Container image for the API app"
+                      }
+                    },
+                    "mcpImageName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Container image for the MCP app"
+                      }
+                    },
+                    "userAssignedIdentityId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource ID of the User-Assigned Managed Identity for ACR pull"
+                      }
+                    },
+                    "containerRegistryServer": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Login server of the Container Registry (e.g. myacr.azurecr.io)"
+                      }
+                    },
+                    "foundryProjectEndpoint": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Foundry project endpoint for the API app"
+                      }
+                    },
+                    "agentName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Agent name for the API app"
+                      }
+                    },
+                    "sqlServerFqdn": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "SQL Server FQDN for the MCP app"
+                      }
+                    },
+                    "sqlDatabaseName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "SQL Database name for the MCP app"
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.App/managedEnvironments",
+                      "apiVersion": "2025-07-01",
+                      "name": "[parameters('containerAppEnvironmentName')]",
+                      "location": "[parameters('location')]",
+                      "tags": {
+                        "SecurityControl": "Ignore"
+                      },
+                      "properties": {
+                        "zoneRedundant": false
+                      }
+                    },
+                    {
+                      "type": "Microsoft.App/containerApps",
+                      "apiVersion": "2025-07-01",
+                      "name": "[parameters('containerAppApiName')]",
+                      "location": "[parameters('location')]",
+                      "tags": {
+                        "SecurityControl": "Ignore"
+                      },
+                      "identity": {
+                        "type": "SystemAssigned, UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('userAssignedIdentityId'))]": {}
+                        }
+                      },
+                      "properties": {
+                        "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', parameters('containerAppEnvironmentName'))]",
+                        "configuration": {
+                          "registries": [
+                            {
+                              "server": "[parameters('containerRegistryServer')]",
+                              "identity": "[parameters('userAssignedIdentityId')]"
+                            }
+                          ],
+                          "ingress": {
+                            "external": true,
+                            "targetPort": 8080,
+                            "transport": "http",
+                            "corsPolicy": {
+                              "allowedOrigins": [
+                                "http://localhost:8080"
+                              ],
+                              "allowedMethods": [
+                                "*"
+                              ],
+                              "allowedHeaders": [
+                                "*"
+                              ]
+                            }
+                          }
+                        },
+                        "template": {
+                          "containers": [
+                            {
+                              "name": "api",
+                              "image": "[parameters('apiImageName')]",
+                              "resources": {
+                                "cpu": "[json('0.5')]",
+                                "memory": "1Gi"
+                              },
+                              "env": [
+                                {
+                                  "name": "FoundryEndpoint",
+                                  "value": "[parameters('foundryProjectEndpoint')]"
+                                },
+                                {
+                                  "name": "AgentName",
+                                  "value": "[parameters('agentName')]"
+                                }
+                              ]
+                            }
+                          ],
+                          "scale": {
+                            "minReplicas": 1,
+                            "maxReplicas": 3
+                          }
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.App/managedEnvironments', parameters('containerAppEnvironmentName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.App/containerApps",
+                      "apiVersion": "2025-07-01",
+                      "name": "[parameters('containerAppMcpName')]",
+                      "location": "[parameters('location')]",
+                      "tags": {
+                        "SecurityControl": "Ignore"
+                      },
+                      "identity": {
+                        "type": "SystemAssigned, UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('userAssignedIdentityId'))]": {}
+                        }
+                      },
+                      "properties": {
+                        "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', parameters('containerAppEnvironmentName'))]",
+                        "configuration": {
+                          "registries": [
+                            {
+                              "server": "[parameters('containerRegistryServer')]",
+                              "identity": "[parameters('userAssignedIdentityId')]"
+                            }
+                          ],
+                          "ingress": {
+                            "external": true,
+                            "targetPort": 8080,
+                            "transport": "http"
+                          }
+                        },
+                        "template": {
+                          "containers": [
+                            {
+                              "name": "mcp",
+                              "image": "[parameters('mcpImageName')]",
+                              "resources": {
+                                "cpu": "[json('0.5')]",
+                                "memory": "1Gi"
+                              },
+                              "env": [
+                                {
+                                  "name": "SqlServer",
+                                  "value": "[parameters('sqlServerFqdn')]"
+                                },
+                                {
+                                  "name": "SqlDatabase",
+                                  "value": "[parameters('sqlDatabaseName')]"
+                                }
+                              ]
+                            }
+                          ],
+                          "scale": {
+                            "minReplicas": 1,
+                            "maxReplicas": 3
+                          }
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.App/managedEnvironments', parameters('containerAppEnvironmentName'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "containerAppEnvironmentId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.App/managedEnvironments', parameters('containerAppEnvironmentName'))]"
+                    },
+                    "apiAppId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.App/containerApps', parameters('containerAppApiName'))]"
+                    },
+                    "apiAppFqdn": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('containerAppApiName')), '2025-07-01').configuration.ingress.fqdn]"
+                    },
+                    "apiPrincipalId": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('containerAppApiName')), '2025-07-01', 'full').identity.principalId]"
+                    },
+                    "mcpAppId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.App/containerApps', parameters('containerAppMcpName'))]"
+                    },
+                    "mcpAppFqdn": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('containerAppMcpName')), '2025-07-01').configuration.ingress.fqdn]"
+                    },
+                    "mcpPrincipalId": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('containerAppMcpName')), '2025-07-01', 'full').identity.principalId]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'containerRegistry')]",
+                "[resourceId('Microsoft.Resources/deployments', 'foundry')]",
+                "[resourceId('Microsoft.Resources/deployments', 'naming')]",
+                "[resourceId('Microsoft.Resources/deployments', 'sql')]",
+                "[resourceId('Microsoft.Resources/deployments', 'userAssignedIdentity')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "apim",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "apimName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'naming'), '2025-04-01').outputs.apimName.value]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "publisherEmail": {
+                    "value": "[parameters('apimPublisherEmail')]"
+                  },
+                  "publisherName": {
+                    "value": "[parameters('apimPublisherName')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "8907386071274059072"
+                    }
+                  },
+                  "parameters": {
+                    "apimName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the API Management instance"
+                      }
+                    },
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Azure region for deployment"
+                      }
+                    },
+                    "publisherEmail": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Publisher email for APIM"
+                      }
+                    },
+                    "publisherName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Publisher organization name for APIM"
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.ApiManagement/service",
+                      "apiVersion": "2024-06-01-preview",
+                      "name": "[parameters('apimName')]",
+                      "location": "[parameters('location')]",
+                      "sku": {
+                        "name": "Developer",
+                        "capacity": 1
+                      },
+                      "properties": {
+                        "publisherEmail": "[parameters('publisherEmail')]",
+                        "publisherName": "[parameters('publisherName')]"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "apimGatewayUrl": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.ApiManagement/service', parameters('apimName')), '2024-06-01-preview').gatewayUrl]"
+                    },
+                    "apimName": {
+                      "type": "string",
+                      "value": "[parameters('apimName')]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'naming')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "acrRoleAssignments",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "containerRegistryName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'naming'), '2025-04-01').outputs.containerRegistryName.value]"
+                  },
+                  "uaiPrincipalId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'userAssignedIdentity'), '2025-04-01').outputs.userAssignedIdentityPrincipalId.value]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "10582371110845344715"
+                    }
+                  },
+                  "parameters": {
+                    "containerRegistryName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the Container Registry"
+                      }
+                    },
+                    "uaiPrincipalId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Principal ID of the User-Assigned Managed Identity"
+                      }
+                    }
+                  },
+                  "variables": {
+                    "acrPullRoleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName'))]",
+                      "name": "[guid(resourceGroup().id, parameters('containerRegistryName'), 'uai-acrpull')]",
+                      "properties": {
+                        "roleDefinitionId": "[variables('acrPullRoleDefinitionId')]",
+                        "principalId": "[parameters('uaiPrincipalId')]",
+                        "principalType": "ServicePrincipal"
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'naming')]",
+                "[resourceId('Microsoft.Resources/deployments', 'userAssignedIdentity')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "foundryRoleAssignments",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "aiServicesAccountName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'foundry'), '2025-04-01').outputs.aiServicesAccountName.value]"
+                  },
+                  "apiPrincipalId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'containerApps'), '2025-04-01').outputs.apiPrincipalId.value]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "16476947137620656228"
+                    }
+                  },
+                  "parameters": {
+                    "aiServicesAccountName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the AI Services account"
+                      }
+                    },
+                    "apiPrincipalId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Principal ID of the API Container App system-assigned identity"
+                      }
+                    }
+                  },
+                  "variables": {
+                    "azureAIUserRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '53ca6127-db72-4b80-b1b0-d745d6d5456d')]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesAccountName'))]",
+                      "name": "[guid(resourceGroup().id, parameters('aiServicesAccountName'), 'api-openai-user')]",
+                      "properties": {
+                        "roleDefinitionId": "[variables('azureAIUserRoleId')]",
+                        "principalId": "[parameters('apiPrincipalId')]",
+                        "principalType": "ServicePrincipal"
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'containerApps')]",
+                "[resourceId('Microsoft.Resources/deployments', 'foundry')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "sqlRoleAssignments",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "sqlServerName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'sql'), '2025-04-01').outputs.sqlServerName.value]"
+                  },
+                  "mcpPrincipalId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'containerApps'), '2025-04-01').outputs.mcpPrincipalId.value]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "4683514389966968179"
+                    }
+                  },
+                  "parameters": {
+                    "sqlServerName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the SQL Server"
+                      }
+                    },
+                    "mcpPrincipalId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Principal ID of the MCP Container App system-assigned identity"
+                      }
+                    }
+                  },
+                  "variables": {
+                    "sqlDbContributorRoleId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '9b7fa17d-e63e-47b0-bb0a-15c516ac86ec')]"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]",
+                      "name": "[guid(resourceGroup().id, parameters('sqlServerName'), parameters('mcpPrincipalId'), '9b7fa17d-e63e-47b0-bb0a-15c516ac86ec')]",
+                      "properties": {
+                        "roleDefinitionId": "[variables('sqlDbContributorRoleId')]",
+                        "principalId": "[parameters('mcpPrincipalId')]",
+                        "principalType": "ServicePrincipal"
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'containerApps')]",
+                "[resourceId('Microsoft.Resources/deployments', 'sql')]"
+              ]
+            }
+          ],
+          "outputs": {
+            "sqlServerFqdn": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'sql'), '2025-04-01').outputs.sqlServerFqdn.value]"
+            },
+            "storageAccountName": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storage'), '2025-04-01').outputs.storageAccountName.value]"
+            },
+            "aiServicesEndpoint": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'foundry'), '2025-04-01').outputs.aiServicesEndpoint.value]"
+            },
+            "containerRegistryLoginServer": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'containerRegistry'), '2025-04-01').outputs.loginServer.value]"
+            },
+            "apiAppFqdn": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'containerApps'), '2025-04-01').outputs.apiAppFqdn.value]"
+            },
+            "mcpAppFqdn": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'containerApps'), '2025-04-01').outputs.mcpAppFqdn.value]"
+            },
+            "apimGatewayUrl": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'apim'), '2025-04-01').outputs.apimGatewayUrl.value]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "cross-region-deployment",
+      "resourceGroup": "[variables('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "appName": {
+            "value": "[parameters('appName')]"
+          },
+          "suffix": {
+            "value": "[parameters('suffix')]"
+          },
+          "apimPublisherName": {
+            "value": "[parameters('apimPublisherName')]"
+          },
+          "resourceLocation": {
+            "value": "[parameters('resourceLocation')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.41.2.15936",
+              "templateHash": "2249061804090568160"
+            }
+          },
+          "parameters": {
+            "appName": {
+              "type": "string",
+              "metadata": {
+                "description": "Application name used in resource naming"
+              }
+            },
+            "suffix": {
+              "type": "string",
+              "minLength": 3,
+              "metadata": {
+                "description": "Environment suffix"
+              }
+            },
+            "apimPublisherName": {
+              "type": "string",
+              "metadata": {
+                "description": "Publisher organization name used in naming"
+              }
+            },
+            "resourceLocation": {
+              "type": "string",
+              "metadata": {
+                "description": "Location for cross-region resources"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "cross-region-naming",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "appName": {
+                    "value": "[parameters('appName')]"
+                  },
+                  "location": {
+                    "value": "[parameters('resourceLocation')]"
+                  },
+                  "suffix": {
+                    "value": "[parameters('suffix')]"
+                  },
+                  "apimPublisherName": {
+                    "value": "[parameters('apimPublisherName')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "8188098646442374602"
+                    }
+                  },
+                  "parameters": {
+                    "appName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Application name used in resource naming"
+                      }
+                    },
+                    "location": {
+                      "type": "string",
+                      "allowedValues": [
+                        "eastus",
+                        "eastus2",
+                        "westus",
+                        "southcentralus"
+                      ],
+                      "metadata": {
+                        "description": "Azure region for deployment"
+                      }
+                    },
+                    "suffix": {
+                      "type": "string",
+                      "minLength": 3,
+                      "metadata": {
+                        "description": "Environment suffix"
+                      }
+                    },
+                    "apimPublisherName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Publisher organization name used for APIM naming"
+                      }
+                    }
+                  },
+                  "variables": {
+                    "locationShortCodes": {
+                      "eastus": "eus",
+                      "eastus2": "eus2",
+                      "westus": "wus",
+                      "southcentralus": "sus"
+                    },
+                    "shortLocation": "[variables('locationShortCodes')[parameters('location')]]",
+                    "storageRawName": "[toLower(format('st{0}{1}{2}', parameters('appName'), variables('shortLocation'), parameters('suffix')))]",
+                    "crRawName": "[format('cr{0}{1}{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                  },
+                  "resources": [],
+                  "outputs": {
+                    "resourceGroupName": {
+                      "type": "string",
+                      "value": "[format('rg-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "sqlServerName": {
+                      "type": "string",
+                      "value": "[format('sqlsvr-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "sqlDatabaseName": {
+                      "type": "string",
+                      "value": "[format('sqldb-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "containerAppEnvironmentName": {
+                      "type": "string",
+                      "value": "[format('cae-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "containerAppApiName": {
+                      "type": "string",
+                      "value": "[format('aca-{0}-api-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "containerAppMcpName": {
+                      "type": "string",
+                      "value": "[format('aca-{0}-mcp-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "foundryAccountName": {
+                      "type": "string",
+                      "value": "[format('foundry-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "apimName": {
+                      "type": "string",
+                      "value": "[format('apim-{0}-{1}-{2}', parameters('apimPublisherName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "apiCenterName": {
+                      "type": "string",
+                      "value": "[format('apic-{0}-{1}-{2}', parameters('apimPublisherName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "userAssignedIdentityName": {
+                      "type": "string",
+                      "value": "[format('uai-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    },
+                    "storageAccountName": {
+                      "type": "string",
+                      "value": "[if(greater(length(variables('storageRawName')), 24), substring(variables('storageRawName'), 0, 24), variables('storageRawName'))]"
+                    },
+                    "containerRegistryName": {
+                      "type": "string",
+                      "value": "[if(greater(length(variables('crRawName')), 50), substring(variables('crRawName'), 0, 50), variables('crRawName'))]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "apiCenter",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "apiCenterName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'cross-region-naming'), '2025-04-01').outputs.apiCenterName.value]"
+                  },
+                  "location": {
+                    "value": "[parameters('resourceLocation')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "8132721132872475628"
+                    }
+                  },
+                  "parameters": {
+                    "apiCenterName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the API Center instance"
+                      }
+                    },
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Azure region for deployment"
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.ApiCenter/services",
+                      "apiVersion": "2024-03-01",
+                      "name": "[parameters('apiCenterName')]",
+                      "location": "[parameters('location')]",
+                      "tags": {
+                        "SecurityControl": "Ignore"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "apiCenterName": {
+                      "type": "string",
+                      "value": "[parameters('apiCenterName')]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'cross-region-naming')]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('resourceGroupName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "resourceGroupName": {
+      "type": "string",
+      "value": "[variables('resourceGroupName')]"
+    },
+    "sqlServerFqdn": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.sqlServerFqdn.value]"
+    },
+    "storageAccountName": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.storageAccountName.value]"
+    },
+    "aiServicesEndpoint": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.aiServicesEndpoint.value]"
+    },
+    "containerRegistryLoginServer": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.containerRegistryLoginServer.value]"
+    },
+    "apiAppFqdn": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.apiAppFqdn.value]"
+    },
+    "mcpAppFqdn": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.mcpAppFqdn.value]"
+    },
+    "apimGatewayUrl": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.apimGatewayUrl.value]"
+    }
+  }
+}

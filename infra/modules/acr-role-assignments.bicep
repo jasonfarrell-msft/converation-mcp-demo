@@ -1,17 +1,13 @@
 // ============================================================================
 // ACR Role Assignments Module
-// Grants AcrPull role to Container App managed identities
-// Separated into a module to resolve deploy-time constant requirements
+// Grants AcrPull role to the shared User-Assigned Managed Identity
 // ============================================================================
 
 @description('Name of the Container Registry')
 param containerRegistryName string
 
-@description('Principal ID of the API Container App managed identity')
-param apiPrincipalId string
-
-@description('Principal ID of the MCP Container App managed identity')
-param mcpPrincipalId string
+@description('Principal ID of the User-Assigned Managed Identity')
+param uaiPrincipalId string
 
 // ---------------------------------------------------------------------------
 // Reference the existing Container Registry
@@ -27,27 +23,14 @@ var acrPullRoleDefinitionId = subscriptionResourceId(
 )
 
 // ---------------------------------------------------------------------------
-// AcrPull for API Container App
+// AcrPull for User-Assigned Managed Identity
 // ---------------------------------------------------------------------------
-resource acrPullRoleApi 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, containerRegistryName, 'api-acrpull')
+resource acrPullRoleUai 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(resourceGroup().id, containerRegistryName, 'uai-acrpull')
   scope: existingRegistry
   properties: {
     roleDefinitionId: acrPullRoleDefinitionId
-    principalId: apiPrincipalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-// ---------------------------------------------------------------------------
-// AcrPull for MCP Container App
-// ---------------------------------------------------------------------------
-resource acrPullRoleMcp 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, containerRegistryName, 'mcp-acrpull')
-  scope: existingRegistry
-  properties: {
-    roleDefinitionId: acrPullRoleDefinitionId
-    principalId: mcpPrincipalId
+    principalId: uaiPrincipalId
     principalType: 'ServicePrincipal'
   }
 }

@@ -11,6 +11,7 @@ param appName string
 
 @description('Azure region for deployment')
 @allowed([
+  'eastus'
   'eastus2'
   'westus'
   'southcentralus'
@@ -21,10 +22,14 @@ param location string
 @minLength(3)
 param suffix string
 
+@description('Publisher organization name used for APIM naming')
+param apimPublisherName string
+
 // ---------------------------------------------------------------------------
 // Location short code mapping
 // ---------------------------------------------------------------------------
 var locationShortCodes = {
+  eastus: 'eus'
   eastus2: 'eus2'
   westus: 'wus'
   southcentralus: 'sus'
@@ -43,6 +48,9 @@ output containerAppEnvironmentName string = 'cae-${appName}-${shortLocation}-${s
 output containerAppApiName string = 'aca-${appName}-api-${shortLocation}-${suffix}'
 output containerAppMcpName string = 'aca-${appName}-mcp-${shortLocation}-${suffix}'
 output foundryAccountName string = 'foundry-${appName}-${shortLocation}-${suffix}'
+output apimName string = 'apim-${apimPublisherName}-${shortLocation}-${suffix}'
+output apiCenterName string = 'apic-${apimPublisherName}-${shortLocation}-${suffix}'
+output userAssignedIdentityName string = 'uai-${appName}-${shortLocation}-${suffix}'
 
 // ---------------------------------------------------------------------------
 // Resources that do NOT allow dashes

@@ -28,6 +28,21 @@ param sqlAdminObjectId string
 @description('Login (email) of the Azure AD SQL admin')
 param sqlAdminLogin string
 
+@description('Publisher email for API Management')
+param apimPublisherEmail string
+
+@description('Publisher organization name for API Management')
+param apimPublisherName string
+
+@description('Container image for the API app')
+param apiImageName string
+
+@description('Container image for the MCP app')
+param mcpImageName string
+
+@description('Agent name for the API app')
+param agentName string
+
 // ---------------------------------------------------------------------------
 // Naming Convention
 // ---------------------------------------------------------------------------
@@ -37,12 +52,12 @@ module naming 'modules/naming.bicep' = {
     appName: appName
     location: location
     suffix: suffix
+    apimPublisherName: apimPublisherName
   }
 }
 
 // ---------------------------------------------------------------------------
-// Azure SQL — uses MCP Container App managed identity as AD admin
-// Deployed after Container Apps so we can reference its principal ID
+// Azure SQL
 // ---------------------------------------------------------------------------
 module sql 'modules/sql.bicep' = {
   name: 'sql'
@@ -52,7 +67,6 @@ module sql 'modules/sql.bicep' = {
     location: location
     azureADAdminObjectId: sqlAdminObjectId
     azureADAdminLogin: sqlAdminLogin
-    mcpPrincipalId: containerApps.outputs.mcpPrincipalId
   }
 }
 
@@ -76,7 +90,6 @@ module foundry 'modules/foundry.bicep' = {
     foundryAccountName: naming.outputs.foundryAccountName
     location: location
     modelDeploymentName: modelDeploymentName
-    apiPrincipalId: containerApps.outputs.apiPrincipalId
   }
 }
 
@@ -92,6 +105,17 @@ module containerRegistry 'modules/container-registry.bicep' = {
 }
 
 // ---------------------------------------------------------------------------
+// User-Assigned Managed Identity (shared for ACR pull)
+// ---------------------------------------------------------------------------
+module userAssignedIdentity 'modules/user-assigned-identity.bicep' = {
+  name: 'userAssignedIdentity'
+  params: {
+    userAssignedIdentityName: naming.outputs.userAssignedIdentityName
+    location: location
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Container Apps (API + MCP)
 // ---------------------------------------------------------------------------
 module containerApps 'modules/container-apps.bicep' = {
@@ -101,6 +125,27 @@ module containerApps 'modules/container-apps.bicep' = {
     containerAppApiName: naming.outputs.containerAppApiName
     containerAppMcpName: naming.outputs.containerAppMcpName
     location: location
+    apiImageName: apiImageName
+    mcpImageName: mcpImageName
+    userAssignedIdentityId: userAssignedIdentity.outputs.userAssignedIdentityId
+    containerRegistryServer: containerRegistry.outputs.loginServer
+    foundryProjectEndpoint: foundry.outputs.foundryProjectEndpoint
+    agentName: agentName
+    sqlServerFqdn: sql.outputs.sqlServerFqdn
+    sqlDatabaseName: sql.outputs.sqlDatabaseName
+  }
+}
+
+// ---------------------------------------------------------------------------
+// API Management
+// ---------------------------------------------------------------------------
+module apim 'modules/apim.bicep' = {
+  name: 'apim'
+  params: {
+    apimName: naming.outputs.apimName
+    location: location
+    publisherEmail: apimPublisherEmail
+    publisherName: apimPublisherName
   }
 }
 
@@ -112,7 +157,30 @@ module acrRoleAssignments 'modules/acr-role-assignments.bicep' = {
   name: 'acrRoleAssignments'
   params: {
     containerRegistryName: naming.outputs.containerRegistryName
+    uaiPrincipalId: userAssignedIdentity.outputs.userAssignedIdentityPrincipalId
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Foundry Role Assignments
+// Grants Azure AI User role to the API Container App system-assigned identity
+// ---------------------------------------------------------------------------
+module foundryRoleAssignments 'modules/foundry-role-assignments.bicep' = {
+  name: 'foundryRoleAssignments'
+  params: {
+    aiServicesAccountName: foundry.outputs.aiServicesAccountName
     apiPrincipalId: containerApps.outputs.apiPrincipalId
+  }
+}
+
+// ---------------------------------------------------------------------------
+// SQL Role Assignments
+// Grants SQL DB Contributor role to the MCP Container App system-assigned identity
+// ---------------------------------------------------------------------------
+module sqlRoleAssignments 'modules/sql-role-assignments.bicep' = {
+  name: 'sqlRoleAssignments'
+  params: {
+    sqlServerName: sql.outputs.sqlServerName
     mcpPrincipalId: containerApps.outputs.mcpPrincipalId
   }
 }
@@ -126,3 +194,4 @@ output aiServicesEndpoint string = foundry.outputs.aiServicesEndpoint
 output containerRegistryLoginServer string = containerRegistry.outputs.loginServer
 output apiAppFqdn string = containerApps.outputs.apiAppFqdn
 output mcpAppFqdn string = containerApps.outputs.mcpAppFqdn
+output apimGatewayUrl string = apim.outputs.apimGatewayUrl

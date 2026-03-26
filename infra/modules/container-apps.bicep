@@ -16,6 +16,30 @@ param containerAppMcpName string
 @description('Azure region for deployment')
 param location string
 
+@description('Container image for the API app')
+param apiImageName string
+
+@description('Container image for the MCP app')
+param mcpImageName string
+
+@description('Resource ID of the User-Assigned Managed Identity for ACR pull')
+param userAssignedIdentityId string
+
+@description('Login server of the Container Registry (e.g. myacr.azurecr.io)')
+param containerRegistryServer string
+
+@description('Foundry project endpoint for the API app')
+param foundryProjectEndpoint string
+
+@description('Agent name for the API app')
+param agentName string
+
+@description('SQL Server FQDN for the MCP app')
+param sqlServerFqdn string
+
+@description('SQL Database name for the MCP app')
+param sqlDatabaseName string
+
 // ---------------------------------------------------------------------------
 // Container App Environment
 // ---------------------------------------------------------------------------
@@ -40,11 +64,20 @@ resource containerAppApi 'Microsoft.App/containerApps@2025-07-01' = {
     SecurityControl: 'Ignore'
   }
   identity: {
-    type: 'SystemAssigned'
+    type: 'SystemAssigned, UserAssigned'
+    userAssignedIdentities: {
+      '${userAssignedIdentityId}': {}
+    }
   }
   properties: {
     managedEnvironmentId: containerAppEnvironment.id
     configuration: {
+      registries: [
+        {
+          server: containerRegistryServer
+          identity: userAssignedIdentityId
+        }
+      ]
       ingress: {
         external: true
         targetPort: 8080
@@ -66,15 +99,25 @@ resource containerAppApi 'Microsoft.App/containerApps@2025-07-01' = {
       containers: [
         {
           name: 'api'
-          image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+          image: apiImageName
           resources: {
             cpu: json('0.5')
             memory: '1Gi'
           }
+          env: [
+            {
+              name: 'FoundryEndpoint'
+              value: foundryProjectEndpoint
+            }
+            {
+              name: 'AgentName'
+              value: agentName
+            }
+          ]
         }
       ]
       scale: {
-        minReplicas: 0
+        minReplicas: 1
         maxReplicas: 3
       }
     }
@@ -91,11 +134,20 @@ resource containerAppMcp 'Microsoft.App/containerApps@2025-07-01' = {
     SecurityControl: 'Ignore'
   }
   identity: {
-    type: 'SystemAssigned'
+    type: 'SystemAssigned, UserAssigned'
+    userAssignedIdentities: {
+      '${userAssignedIdentityId}': {}
+    }
   }
   properties: {
     managedEnvironmentId: containerAppEnvironment.id
     configuration: {
+      registries: [
+        {
+          server: containerRegistryServer
+          identity: userAssignedIdentityId
+        }
+      ]
       ingress: {
         external: true
         targetPort: 8080
@@ -106,11 +158,21 @@ resource containerAppMcp 'Microsoft.App/containerApps@2025-07-01' = {
       containers: [
         {
           name: 'mcp'
-          image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+          image: mcpImageName
           resources: {
             cpu: json('0.5')
             memory: '1Gi'
           }
+          env: [
+            {
+              name: 'SqlServer'
+              value: sqlServerFqdn
+            }
+            {
+              name: 'SqlDatabase'
+              value: sqlDatabaseName
+            }
+          ]
         }
       ]
       scale: {
