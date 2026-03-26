@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.41.2.15936",
-      "templateHash": "15561629199503103920"
+      "templateHash": "8124769869908563487"
     }
   },
   "parameters": {
@@ -159,7 +159,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "4845955884804434963"
+              "templateHash": "10496100499367517638"
             }
           },
           "parameters": {
@@ -1236,6 +1236,17 @@
                   },
                   "publisherName": {
                     "value": "[parameters('apimPublisherName')]"
+                  },
+                  "mcpServers": {
+                    "value": [
+                      {
+                        "name": "survey-data-mcp",
+                        "displayName": "Survey Data MCP Server",
+                        "description": "MCP server exposing survey data query tools via SSE transport",
+                        "path": "survey-data-mcp",
+                        "fqdn": "[reference(resourceId('Microsoft.Resources/deployments', 'containerApps'), '2025-04-01').outputs.mcpAppFqdn.value]"
+                      }
+                    ]
                   }
                 },
                 "template": {
@@ -1245,7 +1256,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.41.2.15936",
-                      "templateHash": "8907386071274059072"
+                      "templateHash": "9922170574509070526"
                     }
                   },
                   "parameters": {
@@ -1272,6 +1283,12 @@
                       "metadata": {
                         "description": "Publisher organization name for APIM"
                       }
+                    },
+                    "mcpServers": {
+                      "type": "array",
+                      "metadata": {
+                        "description": "Collection of MCP servers to register in APIM"
+                      }
                     }
                   },
                   "resources": [
@@ -1288,6 +1305,23 @@
                         "publisherEmail": "[parameters('publisherEmail')]",
                         "publisherName": "[parameters('publisherName')]"
                       }
+                    },
+                    {
+                      "copy": {
+                        "name": "mcpBackends",
+                        "count": "[length(parameters('mcpServers'))]"
+                      },
+                      "type": "Microsoft.ApiManagement/service/backends",
+                      "apiVersion": "2024-06-01-preview",
+                      "name": "[format('{0}/{1}', parameters('apimName'), format('{0}-backend', parameters('mcpServers')[copyIndex()].name))]",
+                      "properties": {
+                        "protocol": "http",
+                        "url": "[format('https://{0}', parameters('mcpServers')[copyIndex()].fqdn)]",
+                        "description": "[format('{0} hosted on Azure Container Apps', parameters('mcpServers')[copyIndex()].displayName)]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.ApiManagement/service', parameters('apimName'))]"
+                      ]
                     }
                   ],
                   "outputs": {
@@ -1303,6 +1337,86 @@
                 }
               },
               "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'containerApps')]",
+                "[resourceId('Microsoft.Resources/deployments', 'naming')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "apimMcpApis",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "apimName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'naming'), '2025-04-01').outputs.apimName.value]"
+                  },
+                  "mcpServers": {
+                    "value": [
+                      {
+                        "name": "survey-data-mcp",
+                        "displayName": "Survey Data MCP Server",
+                        "description": "MCP server exposing survey data query tools via SSE transport",
+                        "path": "survey-data-mcp",
+                        "fqdn": "[reference(resourceId('Microsoft.Resources/deployments', 'containerApps'), '2025-04-01').outputs.mcpAppFqdn.value]"
+                      }
+                    ]
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.41.2.15936",
+                      "templateHash": "13614221994494946282"
+                    }
+                  },
+                  "parameters": {
+                    "apimName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Name of the existing API Management instance"
+                      }
+                    },
+                    "mcpServers": {
+                      "type": "array",
+                      "metadata": {
+                        "description": "Collection of MCP servers to register as APIs"
+                      }
+                    }
+                  },
+                  "resources": [
+                    {
+                      "copy": {
+                        "name": "mcpApis",
+                        "count": "[length(parameters('mcpServers'))]"
+                      },
+                      "type": "Microsoft.ApiManagement/service/apis",
+                      "apiVersion": "2024-06-01-preview",
+                      "name": "[format('{0}/{1}', parameters('apimName'), parameters('mcpServers')[copyIndex()].name)]",
+                      "properties": {
+                        "type": "mcp",
+                        "displayName": "[parameters('mcpServers')[copyIndex()].displayName]",
+                        "description": "[parameters('mcpServers')[copyIndex()].description]",
+                        "path": "[parameters('mcpServers')[copyIndex()].path]",
+                        "protocols": [
+                          "https"
+                        ],
+                        "subscriptionRequired": false,
+                        "backendId": "[format('{0}-backend', parameters('mcpServers')[copyIndex()].name)]"
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'apim')]",
+                "[resourceId('Microsoft.Resources/deployments', 'containerApps')]",
                 "[resourceId('Microsoft.Resources/deployments', 'naming')]"
               ]
             },
@@ -1330,7 +1444,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.41.2.15936",
-                      "templateHash": "10582371110845344715"
+                      "templateHash": "11275385864537623810"
                     }
                   },
                   "parameters": {
@@ -1355,7 +1469,7 @@
                       "type": "Microsoft.Authorization/roleAssignments",
                       "apiVersion": "2022-04-01",
                       "scope": "[resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName'))]",
-                      "name": "[guid(resourceGroup().id, parameters('containerRegistryName'), 'uai-acrpull')]",
+                      "name": "[guid(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), variables('acrPullRoleDefinitionId'), parameters('uaiPrincipalId'))]",
                       "properties": {
                         "roleDefinitionId": "[variables('acrPullRoleDefinitionId')]",
                         "principalId": "[parameters('uaiPrincipalId')]",
@@ -1394,7 +1508,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.41.2.15936",
-                      "templateHash": "16476947137620656228"
+                      "templateHash": "9303793298418016383"
                     }
                   },
                   "parameters": {
@@ -1419,7 +1533,7 @@
                       "type": "Microsoft.Authorization/roleAssignments",
                       "apiVersion": "2022-04-01",
                       "scope": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesAccountName'))]",
-                      "name": "[guid(resourceGroup().id, parameters('aiServicesAccountName'), 'api-openai-user')]",
+                      "name": "[guid(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesAccountName')), variables('azureAIUserRoleId'), parameters('apiPrincipalId'))]",
                       "properties": {
                         "roleDefinitionId": "[variables('azureAIUserRoleId')]",
                         "principalId": "[parameters('apiPrincipalId')]",
@@ -1458,7 +1572,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.41.2.15936",
-                      "templateHash": "4683514389966968179"
+                      "templateHash": "10076627318762281319"
                     }
                   },
                   "parameters": {
@@ -1483,7 +1597,7 @@
                       "type": "Microsoft.Authorization/roleAssignments",
                       "apiVersion": "2022-04-01",
                       "scope": "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]",
-                      "name": "[guid(resourceGroup().id, parameters('sqlServerName'), parameters('mcpPrincipalId'), '9b7fa17d-e63e-47b0-bb0a-15c516ac86ec')]",
+                      "name": "[guid(resourceId('Microsoft.Sql/servers', parameters('sqlServerName')), variables('sqlDbContributorRoleId'), parameters('mcpPrincipalId'))]",
                       "properties": {
                         "roleDefinitionId": "[variables('sqlDbContributorRoleId')]",
                         "principalId": "[parameters('mcpPrincipalId')]",
@@ -1527,6 +1641,18 @@
             "apimGatewayUrl": {
               "type": "string",
               "value": "[reference(resourceId('Microsoft.Resources/deployments', 'apim'), '2025-04-01').outputs.apimGatewayUrl.value]"
+            },
+            "mcpServers": {
+              "type": "array",
+              "value": [
+                {
+                  "name": "survey-data-mcp",
+                  "displayName": "Survey Data MCP Server",
+                  "description": "MCP server exposing survey data query tools via SSE transport",
+                  "path": "survey-data-mcp",
+                  "fqdn": "[reference(resourceId('Microsoft.Resources/deployments', 'containerApps'), '2025-04-01').outputs.mcpAppFqdn.value]"
+                }
+              ]
             }
           }
         }
@@ -1557,6 +1683,12 @@
           },
           "resourceLocation": {
             "value": "[parameters('resourceLocation')]"
+          },
+          "apimGatewayUrl": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.apimGatewayUrl.value]"
+          },
+          "mcpServers": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.mcpServers.value]"
           }
         },
         "template": {
@@ -1566,7 +1698,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "2249061804090568160"
+              "templateHash": "9770484201823136641"
             }
           },
           "parameters": {
@@ -1593,6 +1725,18 @@
               "type": "string",
               "metadata": {
                 "description": "Location for cross-region resources"
+              }
+            },
+            "apimGatewayUrl": {
+              "type": "string",
+              "metadata": {
+                "description": "APIM gateway URL for the MCP server endpoint"
+              }
+            },
+            "mcpServers": {
+              "type": "array",
+              "metadata": {
+                "description": "Collection of MCP servers to register in API Center"
               }
             }
           },
@@ -1743,6 +1887,12 @@
                   },
                   "location": {
                     "value": "[parameters('resourceLocation')]"
+                  },
+                  "apimGatewayUrl": {
+                    "value": "[parameters('apimGatewayUrl')]"
+                  },
+                  "mcpServers": {
+                    "value": "[parameters('mcpServers')]"
                   }
                 },
                 "template": {
@@ -1752,7 +1902,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.41.2.15936",
-                      "templateHash": "8132721132872475628"
+                      "templateHash": "10618212566471182778"
                     }
                   },
                   "parameters": {
@@ -1767,17 +1917,142 @@
                       "metadata": {
                         "description": "Azure region for deployment"
                       }
+                    },
+                    "apimGatewayUrl": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "APIM gateway URL used as the MCP server runtime endpoint"
+                      }
+                    },
+                    "mcpServers": {
+                      "type": "array",
+                      "metadata": {
+                        "description": "Collection of MCP servers to register in API Center"
+                      }
                     }
                   },
                   "resources": [
                     {
                       "type": "Microsoft.ApiCenter/services",
-                      "apiVersion": "2024-03-01",
+                      "apiVersion": "2024-06-01-preview",
                       "name": "[parameters('apiCenterName')]",
                       "location": "[parameters('location')]",
+                      "sku": {
+                        "name": "Free"
+                      },
                       "tags": {
                         "SecurityControl": "Ignore"
                       }
+                    },
+                    {
+                      "type": "Microsoft.ApiCenter/services/workspaces",
+                      "apiVersion": "2024-06-01-preview",
+                      "name": "[format('{0}/{1}', parameters('apiCenterName'), 'default')]",
+                      "properties": {
+                        "title": "Default",
+                        "description": "Default workspace"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.ApiCenter/services', parameters('apiCenterName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.ApiCenter/services/workspaces/environments",
+                      "apiVersion": "2024-06-01-preview",
+                      "name": "[format('{0}/{1}/{2}', parameters('apiCenterName'), 'default', 'apim-mcp-environment')]",
+                      "properties": {
+                        "title": "APIM MCP Gateway",
+                        "description": "Azure API Management gateway fronting MCP servers",
+                        "kind": "production",
+                        "server": {
+                          "type": "Azure API Management",
+                          "managementPortalUri": [
+                            "[parameters('apimGatewayUrl')]"
+                          ]
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.ApiCenter/services/workspaces', parameters('apiCenterName'), 'default')]"
+                      ]
+                    },
+                    {
+                      "copy": {
+                        "name": "mcpApis",
+                        "count": "[length(parameters('mcpServers'))]"
+                      },
+                      "type": "Microsoft.ApiCenter/services/workspaces/apis",
+                      "apiVersion": "2024-06-01-preview",
+                      "name": "[format('{0}/{1}/{2}', parameters('apiCenterName'), 'default', parameters('mcpServers')[copyIndex()].name)]",
+                      "properties": {
+                        "title": "[parameters('mcpServers')[copyIndex()].displayName]",
+                        "description": "[parameters('mcpServers')[copyIndex()].description]",
+                        "kind": "mcp",
+                        "summary": "[parameters('mcpServers')[copyIndex()].description]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.ApiCenter/services/workspaces', parameters('apiCenterName'), 'default')]"
+                      ]
+                    },
+                    {
+                      "copy": {
+                        "name": "mcpVersions",
+                        "count": "[length(parameters('mcpServers'))]"
+                      },
+                      "type": "Microsoft.ApiCenter/services/workspaces/apis/versions",
+                      "apiVersion": "2024-06-01-preview",
+                      "name": "[format('{0}/{1}/{2}/{3}', parameters('apiCenterName'), 'default', parameters('mcpServers')[copyIndex()].name, 'v1-0-0')]",
+                      "properties": {
+                        "title": "1.0.0",
+                        "lifecycleStage": "production"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.ApiCenter/services/workspaces/apis', parameters('apiCenterName'), 'default', parameters('mcpServers')[copyIndex()].name)]"
+                      ]
+                    },
+                    {
+                      "copy": {
+                        "name": "mcpDefinitions",
+                        "count": "[length(parameters('mcpServers'))]"
+                      },
+                      "type": "Microsoft.ApiCenter/services/workspaces/apis/versions/definitions",
+                      "apiVersion": "2024-06-01-preview",
+                      "name": "[format('{0}/{1}/{2}/{3}/{4}', parameters('apiCenterName'), 'default', parameters('mcpServers')[copyIndex()].name, 'v1-0-0', format('{0}-definition', parameters('mcpServers')[copyIndex()].name))]",
+                      "properties": {
+                        "title": "[format('{0} Definition', parameters('mcpServers')[copyIndex()].displayName)]",
+                        "description": "[format('Definition for {0} version 1.0.0', parameters('mcpServers')[copyIndex()].displayName)]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.ApiCenter/services/workspaces/apis/versions', parameters('apiCenterName'), 'default', parameters('mcpServers')[copyIndex()].name, 'v1-0-0')]"
+                      ]
+                    },
+                    {
+                      "copy": {
+                        "name": "mcpDeployments",
+                        "count": "[length(parameters('mcpServers'))]"
+                      },
+                      "type": "Microsoft.ApiCenter/services/workspaces/apis/deployments",
+                      "apiVersion": "2024-06-01-preview",
+                      "name": "[format('{0}/{1}/{2}/{3}', parameters('apiCenterName'), 'default', parameters('mcpServers')[copyIndex()].name, format('{0}-deployment', parameters('mcpServers')[copyIndex()].name))]",
+                      "properties": {
+                        "title": "[format('{0} Deployment', parameters('mcpServers')[copyIndex()].displayName)]",
+                        "description": "[format('{0} accessible via APIM gateway', parameters('mcpServers')[copyIndex()].displayName)]",
+                        "environmentId": "[format('/workspaces/{0}/environments/{1}', 'default', 'apim-mcp-environment')]",
+                        "definitionId": "[format('/workspaces/{0}/apis/{1}/versions/{2}/definitions/{3}', 'default', parameters('mcpServers')[copyIndex()].name, 'v1-0-0', format('{0}-definition', parameters('mcpServers')[copyIndex()].name))]",
+                        "server": {
+                          "runtimeUri": [
+                            "[format('{0}/{1}', parameters('apimGatewayUrl'), parameters('mcpServers')[copyIndex()].path)]"
+                          ]
+                        },
+                        "state": "active"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.ApiCenter/services/workspaces/environments', parameters('apiCenterName'), 'default', 'apim-mcp-environment')]",
+                        "[resourceId('Microsoft.ApiCenter/services/workspaces', parameters('apiCenterName'), 'default')]",
+                        "[resourceId('Microsoft.ApiCenter/services/workspaces/apis', parameters('apiCenterName'), 'default', parameters('mcpServers')[copyIndex()].name)]",
+                        "[resourceId('Microsoft.ApiCenter/services/workspaces/apis', parameters('apiCenterName'), 'default', parameters('mcpServers')[copyIndex()].name)]",
+                        "[resourceId('Microsoft.ApiCenter/services/workspaces/apis/versions/definitions', parameters('apiCenterName'), 'default', parameters('mcpServers')[copyIndex()].name, 'v1-0-0', format('{0}-definition', parameters('mcpServers')[copyIndex()].name))]",
+                        "[resourceId('Microsoft.ApiCenter/services/workspaces/apis/versions', parameters('apiCenterName'), 'default', parameters('mcpServers')[copyIndex()].name, 'v1-0-0')]"
+                      ]
                     }
                   ],
                   "outputs": {
@@ -1796,6 +2071,7 @@
         }
       },
       "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment')]",
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('resourceGroupName'))]"
       ]
     }

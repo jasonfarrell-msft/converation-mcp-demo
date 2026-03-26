@@ -26,7 +26,7 @@ var sqlDbContributorRoleId = subscriptionResourceId(
 // SQL DB Contributor for MCP Container App
 // ---------------------------------------------------------------------------
 resource sqlRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, sqlServerName, mcpPrincipalId, '9b7fa17d-e63e-47b0-bb0a-15c516ac86ec')
+  name: guid(existingSqlServer.id, sqlDbContributorRoleId, mcpPrincipalId)
   scope: existingSqlServer
   properties: {
     roleDefinitionId: sqlDbContributorRoleId

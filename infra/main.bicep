@@ -102,6 +102,8 @@ module crossRegion 'cross-region.bicep' = {
     suffix: suffix
     apimPublisherName: apimPublisherName
     resourceLocation: resourceLocation
+    apimGatewayUrl: group.outputs.apimGatewayUrl
+    mcpServers: group.outputs.mcpServers
   }
 }
 

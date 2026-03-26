@@ -139,6 +139,16 @@ module containerApps 'modules/container-apps.bicep' = {
 // ---------------------------------------------------------------------------
 // API Management
 // ---------------------------------------------------------------------------
+var mcpServers = [
+  {
+    name: 'survey-data-mcp'
+    displayName: 'Survey Data MCP Server'
+    description: 'MCP server exposing survey data query tools via SSE transport'
+    path: 'survey-data-mcp'
+    fqdn: containerApps.outputs.mcpAppFqdn
+  }
+]
+
 module apim 'modules/apim.bicep' = {
   name: 'apim'
   params: {
@@ -146,7 +156,22 @@ module apim 'modules/apim.bicep' = {
     location: location
     publisherEmail: apimPublisherEmail
     publisherName: apimPublisherName
+    mcpServers: mcpServers
   }
+}
+
+// ---------------------------------------------------------------------------
+// APIM MCP APIs (separate deployment to ensure backends exist first)
+// ---------------------------------------------------------------------------
+module apimMcpApis 'modules/apim-mcp-apis.bicep' = {
+  name: 'apimMcpApis'
+  params: {
+    apimName: naming.outputs.apimName
+    mcpServers: mcpServers
+  }
+  dependsOn: [
+    apim
+  ]
 }
 
 // ---------------------------------------------------------------------------
@@ -195,3 +220,4 @@ output containerRegistryLoginServer string = containerRegistry.outputs.loginServ
 output apiAppFqdn string = containerApps.outputs.apiAppFqdn
 output mcpAppFqdn string = containerApps.outputs.mcpAppFqdn
 output apimGatewayUrl string = apim.outputs.apimGatewayUrl
+output mcpServers array = mcpServers

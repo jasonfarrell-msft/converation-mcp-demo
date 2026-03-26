@@ -17,6 +17,12 @@ param apimPublisherName string
 @description('Location for cross-region resources')
 param resourceLocation string
 
+@description('APIM gateway URL for the MCP server endpoint')
+param apimGatewayUrl string
+
+@description('Collection of MCP servers to register in API Center')
+param mcpServers array
+
 // ---------------------------------------------------------------------------
 // Naming Convention
 // ---------------------------------------------------------------------------
@@ -38,5 +44,7 @@ module apiCenter 'modules/api-center.bicep' = {
   params: {
     apiCenterName: naming.outputs.apiCenterName
     location: resourceLocation
+    apimGatewayUrl: apimGatewayUrl
+    mcpServers: mcpServers
   }
 }

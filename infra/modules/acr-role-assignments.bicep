@@ -26,7 +26,7 @@ var acrPullRoleDefinitionId = subscriptionResourceId(
 // AcrPull for User-Assigned Managed Identity
 // ---------------------------------------------------------------------------
 resource acrPullRoleUai 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, containerRegistryName, 'uai-acrpull')
+  name: guid(existingRegistry.id, acrPullRoleDefinitionId, uaiPrincipalId)
   scope: existingRegistry
   properties: {
     roleDefinitionId: acrPullRoleDefinitionId

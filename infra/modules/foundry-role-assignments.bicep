@@ -26,7 +26,7 @@ var azureAIUserRoleId = subscriptionResourceId(
 // Azure AI User for API Container App
 // ---------------------------------------------------------------------------
 resource apiOpenAIUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, aiServicesAccountName, 'api-openai-user')
+  name: guid(existingAiServices.id, azureAIUserRoleId, apiPrincipalId)
   scope: existingAiServices
   properties: {
     roleDefinitionId: azureAIUserRoleId
