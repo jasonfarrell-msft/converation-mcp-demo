@@ -18,6 +18,24 @@ public class QueryDataProvider
 
     public async Task<List<RpnsSurveyDataRecord>> QueryAsync(string query)
     {
+        var normalizedQuery = query?.Trim() ?? string.Empty;
+        if (normalizedQuery.EndsWith(';'))
+            normalizedQuery = normalizedQuery[..^1].TrimEnd();
+
+        if (!normalizedQuery.StartsWith("SELECT", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Only SELECT queries are allowed.");
+        if (normalizedQuery.Contains(';'))
+            throw new InvalidOperationException("Multiple SQL statements are not allowed.");
+
+        var disallowedKeywords = new[]
+        {
+            " INSERT ", " UPDATE ", " DELETE ", " MERGE ", " DROP ",
+            " ALTER ", " CREATE ", " TRUNCATE ", " EXEC "
+        };
+        var upperQuery = $" {normalizedQuery.ToUpperInvariant()} ";
+        if (disallowedKeywords.Any(upperQuery.Contains))
+            throw new InvalidOperationException("Unsafe SQL keywords are not allowed.");
+
         var connectionString = new SqlConnectionStringBuilder
         {
             DataSource = $"tcp:{_server},1433",
@@ -32,11 +50,14 @@ public class QueryDataProvider
         Console.WriteLine($"Connecting to SQL Server with connection string: {connectionString}");
         try
         {
-        await using var connection = new SqlConnection(connectionString);
-        await connection.OpenAsync();
+            await using var connection = new SqlConnection(connectionString);
+            await connection.OpenAsync();
 
-        var results = await connection.QueryAsync<RpnsSurveyDataRecord>(query);
-        return results.ToList();
+            const int maxRows = 500;
+            var command = new CommandDefinition(normalizedQuery, commandTimeout: 30);
+            var results = (await connection.QueryAsync<RpnsSurveyDataRecord>(command)).Take(maxRows).ToList();
+            Console.WriteLine($"Returned {results.Count} rows (max {maxRows}).");
+            return results;
         }
         catch (Exception ex)
         {

@@ -16,17 +16,20 @@ From within the `infra/` folder, run the following command:
 
 ```bash
 az deployment sub create \
-  --template-file main.bicep --location eastus2 \
+  --template-file main.bicep --location swedencentral \
   --parameters main.bicepparam
 ```
+
+> **Note:** The sample `main.bicepparam` file points the Container Apps at images in `crsurveychatswc01.azurecr.io`. Run the deployment once to create the registry, push the `survey-data-api:v1` and `survey-data-mcp:v1` images, then rerun the same deployment command to finish provisioning the Container Apps.
 
 ### Parameters
 
 | Parameter | Type | Description |
 |---|---|---|
 | `appName` | `string` | Application name used in resource naming. |
-| `location` | `string` | Azure region for deployment. Allowed values: `eastus2`, `westus`, `southcentralus`. |
+| `location` | `string` | Azure region for deployment. Allowed values: `eastus2`, `westus`, `southcentralus`, `swedencentral`. |
 | `suffix` | `string` | Environment suffix (minimum 3 characters). Used alongside `appName` and `location` to generate unique resource names. |
+| `resourceGroupName` | `string` | Optional explicit resource group name override. |
 | `modelDeploymentName` | `string` | Name for the GPT model deployment in Foundry. |
 | `sqlAdminObjectId` | `string` | Object ID of the Azure AD user or group to be assigned as the SQL admin. |
 | `sqlAdminLogin` | `string` | Login (email) of the Azure AD SQL admin. |

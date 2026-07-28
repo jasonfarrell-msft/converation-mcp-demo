@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.41.2.15936",
-      "templateHash": "8124769869908563487"
+      "version": "0.44.1.10279",
+      "templateHash": "4071494056505245786"
     }
   },
   "parameters": {
@@ -20,7 +20,8 @@
       "allowedValues": [
         "eastus2",
         "westus",
-        "southcentralus"
+        "southcentralus",
+        "swedencentral"
       ],
       "metadata": {
         "description": "Azure region for deployment"
@@ -31,6 +32,13 @@
       "minLength": 3,
       "metadata": {
         "description": "Environment suffix"
+      }
+    },
+    "resourceGroupName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional override for the resource group name"
       }
     },
     "modelDeploymentName": {
@@ -92,16 +100,18 @@
     "locationShortCodes": {
       "eastus2": "eus2",
       "westus": "wus",
-      "southcentralus": "sus"
+      "southcentralus": "sus",
+      "swedencentral": "swc"
     },
     "shortLocation": "[variables('locationShortCodes')[parameters('location')]]",
-    "resourceGroupName": "[format('rg-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+    "regionalSuffix": "[if(startsWith(toLower(parameters('suffix')), variables('shortLocation')), toLower(parameters('suffix')), format('{0}-{1}', variables('shortLocation'), toLower(parameters('suffix'))))]",
+    "resolvedResourceGroupName": "[if(empty(parameters('resourceGroupName')), format('rg-{0}-{1}', parameters('appName'), variables('regionalSuffix')), parameters('resourceGroupName'))]"
   },
   "resources": [
     {
       "type": "Microsoft.Resources/resourceGroups",
       "apiVersion": "2024-03-01",
-      "name": "[variables('resourceGroupName')]",
+      "name": "[variables('resolvedResourceGroupName')]",
       "location": "[parameters('location')]",
       "tags": {
         "SecurityControl": "Ignore"
@@ -111,7 +121,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "group-deployment",
-      "resourceGroup": "[variables('resourceGroupName')]",
+      "resourceGroup": "[variables('resolvedResourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -158,8 +168,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.41.2.15936",
-              "templateHash": "10496100499367517638"
+              "version": "0.44.1.10279",
+              "templateHash": "16495437480710762740"
             }
           },
           "parameters": {
@@ -174,7 +184,8 @@
               "allowedValues": [
                 "eastus2",
                 "westus",
-                "southcentralus"
+                "southcentralus",
+                "swedencentral"
               ],
               "metadata": {
                 "description": "Azure region for deployment"
@@ -255,9 +266,6 @@
                   },
                   "suffix": {
                     "value": "[parameters('suffix')]"
-                  },
-                  "apimPublisherName": {
-                    "value": "[parameters('apimPublisherName')]"
                   }
                 },
                 "template": {
@@ -266,8 +274,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "8188098646442374602"
+                      "version": "0.44.1.10279",
+                      "templateHash": "8581798074484406201"
                     }
                   },
                   "parameters": {
@@ -283,7 +291,8 @@
                         "eastus",
                         "eastus2",
                         "westus",
-                        "southcentralus"
+                        "southcentralus",
+                        "swedencentral"
                       ],
                       "metadata": {
                         "description": "Azure region for deployment"
@@ -295,12 +304,6 @@
                       "metadata": {
                         "description": "Environment suffix"
                       }
-                    },
-                    "apimPublisherName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Publisher organization name used for APIM naming"
-                      }
                     }
                   },
                   "variables": {
@@ -308,53 +311,55 @@
                       "eastus": "eus",
                       "eastus2": "eus2",
                       "westus": "wus",
-                      "southcentralus": "sus"
+                      "southcentralus": "sus",
+                      "swedencentral": "swc"
                     },
                     "shortLocation": "[variables('locationShortCodes')[parameters('location')]]",
-                    "storageRawName": "[toLower(format('st{0}{1}{2}', parameters('appName'), variables('shortLocation'), parameters('suffix')))]",
-                    "crRawName": "[format('cr{0}{1}{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    "regionalSuffix": "[if(startsWith(toLower(parameters('suffix')), variables('shortLocation')), toLower(parameters('suffix')), format('{0}-{1}', variables('shortLocation'), toLower(parameters('suffix'))))]",
+                    "storageRawName": "[toLower(format('st{0}{1}', parameters('appName'), variables('regionalSuffix')))]",
+                    "crRawName": "[format('cr{0}{1}', parameters('appName'), variables('regionalSuffix'))]"
                   },
                   "resources": [],
                   "outputs": {
                     "resourceGroupName": {
                       "type": "string",
-                      "value": "[format('rg-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('rg-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "sqlServerName": {
                       "type": "string",
-                      "value": "[format('sqlsvr-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('sqlsvr-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "sqlDatabaseName": {
                       "type": "string",
-                      "value": "[format('sqldb-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('sqldb-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "containerAppEnvironmentName": {
                       "type": "string",
-                      "value": "[format('cae-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('cae-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "containerAppApiName": {
                       "type": "string",
-                      "value": "[format('aca-{0}-api-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('aca-{0}-api-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "containerAppMcpName": {
                       "type": "string",
-                      "value": "[format('aca-{0}-mcp-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('aca-{0}-mcp-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "foundryAccountName": {
                       "type": "string",
-                      "value": "[format('foundry-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('foundry-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "apimName": {
                       "type": "string",
-                      "value": "[format('apim-{0}-{1}-{2}', parameters('apimPublisherName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('apim-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "apiCenterName": {
                       "type": "string",
-                      "value": "[format('apic-{0}-{1}-{2}', parameters('apimPublisherName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('apic-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "userAssignedIdentityName": {
                       "type": "string",
-                      "value": "[format('uai-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('uai-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "storageAccountName": {
                       "type": "string",
@@ -400,8 +405,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "17661030160116232780"
+                      "version": "0.44.1.10279",
+                      "templateHash": "2128164523563954963"
                     }
                   },
                   "parameters": {
@@ -554,8 +559,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "16584934101256053571"
+                      "version": "0.44.1.10279",
+                      "templateHash": "2991964223005951305"
                     }
                   },
                   "parameters": {
@@ -635,8 +640,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "50351033732615369"
+                      "version": "0.44.1.10279",
+                      "templateHash": "9543599720114914815"
                     }
                   },
                   "parameters": {
@@ -772,8 +777,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "7586862263377378379"
+                      "version": "0.44.1.10279",
+                      "templateHash": "14418170196101997464"
                     }
                   },
                   "parameters": {
@@ -850,8 +855,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "13751171008357434020"
+                      "version": "0.44.1.10279",
+                      "templateHash": "218367906071142301"
                     }
                   },
                   "parameters": {
@@ -952,8 +957,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "1886537851279205791"
+                      "version": "0.44.1.10279",
+                      "templateHash": "7566668810707334"
                     }
                   },
                   "parameters": {
@@ -1255,8 +1260,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "9922170574509070526"
+                      "version": "0.44.1.10279",
+                      "templateHash": "15863865593614101526"
                     }
                   },
                   "parameters": {
@@ -1372,8 +1377,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "13614221994494946282"
+                      "version": "0.44.1.10279",
+                      "templateHash": "13006998362408093675"
                     }
                   },
                   "parameters": {
@@ -1443,8 +1448,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "11275385864537623810"
+                      "version": "0.44.1.10279",
+                      "templateHash": "4530071640853195740"
                     }
                   },
                   "parameters": {
@@ -1507,8 +1512,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "9303793298418016383"
+                      "version": "0.44.1.10279",
+                      "templateHash": "5412268381126849147"
                     }
                   },
                   "parameters": {
@@ -1571,8 +1576,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "10076627318762281319"
+                      "version": "0.44.1.10279",
+                      "templateHash": "951921037571465955"
                     }
                   },
                   "parameters": {
@@ -1658,14 +1663,14 @@
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('resourceGroupName'))]"
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('resolvedResourceGroupName'))]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "cross-region-deployment",
-      "resourceGroup": "[variables('resourceGroupName')]",
+      "resourceGroup": "[variables('resolvedResourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -1678,17 +1683,14 @@
           "suffix": {
             "value": "[parameters('suffix')]"
           },
-          "apimPublisherName": {
-            "value": "[parameters('apimPublisherName')]"
-          },
           "resourceLocation": {
             "value": "[parameters('resourceLocation')]"
           },
           "apimGatewayUrl": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.apimGatewayUrl.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resolvedResourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.apimGatewayUrl.value]"
           },
           "mcpServers": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.mcpServers.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resolvedResourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.mcpServers.value]"
           }
         },
         "template": {
@@ -1697,8 +1699,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.41.2.15936",
-              "templateHash": "9770484201823136641"
+              "version": "0.44.1.10279",
+              "templateHash": "15698064941701477158"
             }
           },
           "parameters": {
@@ -1713,12 +1715,6 @@
               "minLength": 3,
               "metadata": {
                 "description": "Environment suffix"
-              }
-            },
-            "apimPublisherName": {
-              "type": "string",
-              "metadata": {
-                "description": "Publisher organization name used in naming"
               }
             },
             "resourceLocation": {
@@ -1759,9 +1755,6 @@
                   },
                   "suffix": {
                     "value": "[parameters('suffix')]"
-                  },
-                  "apimPublisherName": {
-                    "value": "[parameters('apimPublisherName')]"
                   }
                 },
                 "template": {
@@ -1770,8 +1763,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "8188098646442374602"
+                      "version": "0.44.1.10279",
+                      "templateHash": "8581798074484406201"
                     }
                   },
                   "parameters": {
@@ -1787,7 +1780,8 @@
                         "eastus",
                         "eastus2",
                         "westus",
-                        "southcentralus"
+                        "southcentralus",
+                        "swedencentral"
                       ],
                       "metadata": {
                         "description": "Azure region for deployment"
@@ -1799,12 +1793,6 @@
                       "metadata": {
                         "description": "Environment suffix"
                       }
-                    },
-                    "apimPublisherName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Publisher organization name used for APIM naming"
-                      }
                     }
                   },
                   "variables": {
@@ -1812,53 +1800,55 @@
                       "eastus": "eus",
                       "eastus2": "eus2",
                       "westus": "wus",
-                      "southcentralus": "sus"
+                      "southcentralus": "sus",
+                      "swedencentral": "swc"
                     },
                     "shortLocation": "[variables('locationShortCodes')[parameters('location')]]",
-                    "storageRawName": "[toLower(format('st{0}{1}{2}', parameters('appName'), variables('shortLocation'), parameters('suffix')))]",
-                    "crRawName": "[format('cr{0}{1}{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                    "regionalSuffix": "[if(startsWith(toLower(parameters('suffix')), variables('shortLocation')), toLower(parameters('suffix')), format('{0}-{1}', variables('shortLocation'), toLower(parameters('suffix'))))]",
+                    "storageRawName": "[toLower(format('st{0}{1}', parameters('appName'), variables('regionalSuffix')))]",
+                    "crRawName": "[format('cr{0}{1}', parameters('appName'), variables('regionalSuffix'))]"
                   },
                   "resources": [],
                   "outputs": {
                     "resourceGroupName": {
                       "type": "string",
-                      "value": "[format('rg-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('rg-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "sqlServerName": {
                       "type": "string",
-                      "value": "[format('sqlsvr-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('sqlsvr-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "sqlDatabaseName": {
                       "type": "string",
-                      "value": "[format('sqldb-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('sqldb-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "containerAppEnvironmentName": {
                       "type": "string",
-                      "value": "[format('cae-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('cae-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "containerAppApiName": {
                       "type": "string",
-                      "value": "[format('aca-{0}-api-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('aca-{0}-api-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "containerAppMcpName": {
                       "type": "string",
-                      "value": "[format('aca-{0}-mcp-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('aca-{0}-mcp-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "foundryAccountName": {
                       "type": "string",
-                      "value": "[format('foundry-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('foundry-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "apimName": {
                       "type": "string",
-                      "value": "[format('apim-{0}-{1}-{2}', parameters('apimPublisherName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('apim-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "apiCenterName": {
                       "type": "string",
-                      "value": "[format('apic-{0}-{1}-{2}', parameters('apimPublisherName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('apic-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "userAssignedIdentityName": {
                       "type": "string",
-                      "value": "[format('uai-{0}-{1}-{2}', parameters('appName'), variables('shortLocation'), parameters('suffix'))]"
+                      "value": "[format('uai-{0}-{1}', parameters('appName'), variables('regionalSuffix'))]"
                     },
                     "storageAccountName": {
                       "type": "string",
@@ -1901,8 +1891,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.41.2.15936",
-                      "templateHash": "10618212566471182778"
+                      "version": "0.44.1.10279",
+                      "templateHash": "12374296918539694405"
                     }
                   },
                   "parameters": {
@@ -1938,7 +1928,7 @@
                       "name": "[parameters('apiCenterName')]",
                       "location": "[parameters('location')]",
                       "sku": {
-                        "name": "Free"
+                        "name": "Standard"
                       },
                       "tags": {
                         "SecurityControl": "Ignore"
@@ -2071,43 +2061,43 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment')]",
-        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('resourceGroupName'))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resolvedResourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('resolvedResourceGroupName'))]"
       ]
     }
   ],
   "outputs": {
     "resourceGroupName": {
       "type": "string",
-      "value": "[variables('resourceGroupName')]"
+      "value": "[variables('resolvedResourceGroupName')]"
     },
     "sqlServerFqdn": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.sqlServerFqdn.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resolvedResourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.sqlServerFqdn.value]"
     },
     "storageAccountName": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.storageAccountName.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resolvedResourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.storageAccountName.value]"
     },
     "aiServicesEndpoint": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.aiServicesEndpoint.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resolvedResourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.aiServicesEndpoint.value]"
     },
     "containerRegistryLoginServer": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.containerRegistryLoginServer.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resolvedResourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.containerRegistryLoginServer.value]"
     },
     "apiAppFqdn": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.apiAppFqdn.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resolvedResourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.apiAppFqdn.value]"
     },
     "mcpAppFqdn": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.mcpAppFqdn.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resolvedResourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.mcpAppFqdn.value]"
     },
     "apimGatewayUrl": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.apimGatewayUrl.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('resolvedResourceGroupName')), 'Microsoft.Resources/deployments', 'group-deployment'), '2025-04-01').outputs.apimGatewayUrl.value]"
     }
   }
 }

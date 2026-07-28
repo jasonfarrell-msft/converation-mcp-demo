@@ -13,12 +13,16 @@ param appName string
   'eastus2'
   'westus'
   'southcentralus'
+  'swedencentral'
 ])
 param location string
 
 @description('Environment suffix')
 @minLength(3)
 param suffix string
+
+@description('Optional override for the resource group name')
+param resourceGroupName string = ''
 
 @description('Name for the GPT model deployment in Foundry')
 param modelDeploymentName string
@@ -55,15 +59,17 @@ var locationShortCodes = {
   eastus2: 'eus2'
   westus: 'wus'
   southcentralus: 'sus'
+  swedencentral: 'swc'
 }
 var shortLocation = locationShortCodes[location]
-var resourceGroupName = 'rg-${appName}-${shortLocation}-${suffix}'
+var regionalSuffix = startsWith(toLower(suffix), shortLocation) ? toLower(suffix) : '${shortLocation}-${toLower(suffix)}'
+var resolvedResourceGroupName = empty(resourceGroupName) ? 'rg-${appName}-${regionalSuffix}' : resourceGroupName
 
 // ---------------------------------------------------------------------------
 // Resource Group
 // ---------------------------------------------------------------------------
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
-  name: resourceGroupName
+  name: resolvedResourceGroupName
   location: location
   tags: {
     SecurityControl: 'Ignore'
@@ -100,7 +106,6 @@ module crossRegion 'cross-region.bicep' = {
   params: {
     appName: appName
     suffix: suffix
-    apimPublisherName: apimPublisherName
     resourceLocation: resourceLocation
     apimGatewayUrl: group.outputs.apimGatewayUrl
     mcpServers: group.outputs.mcpServers
@@ -118,3 +123,4 @@ output containerRegistryLoginServer string = group.outputs.containerRegistryLogi
 output apiAppFqdn string = group.outputs.apiAppFqdn
 output mcpAppFqdn string = group.outputs.mcpAppFqdn
 output apimGatewayUrl string = group.outputs.apimGatewayUrl
+output frontendUrl string = group.outputs.frontendUrl

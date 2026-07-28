@@ -12,6 +12,7 @@ param appName string
   'eastus2'
   'westus'
   'southcentralus'
+  'swedencentral'
 ])
 param location string
 
@@ -52,7 +53,6 @@ module naming 'modules/naming.bicep' = {
     appName: appName
     location: location
     suffix: suffix
-    apimPublisherName: apimPublisherName
   }
 }
 
@@ -118,6 +118,10 @@ module userAssignedIdentity 'modules/user-assigned-identity.bicep' = {
 // ---------------------------------------------------------------------------
 // Container Apps (API + MCP)
 // ---------------------------------------------------------------------------
+// Derive the frontend URL from naming so containerApps and appService have
+// no circular dependency on each other.
+var frontendUrl = 'https://${naming.outputs.webAppName}.azurewebsites.net'
+
 module containerApps 'modules/container-apps.bicep' = {
   name: 'containerApps'
   params: {
@@ -133,6 +137,7 @@ module containerApps 'modules/container-apps.bicep' = {
     agentName: agentName
     sqlServerFqdn: sql.outputs.sqlServerFqdn
     sqlDatabaseName: sql.outputs.sqlDatabaseName
+    frontendUrl: frontendUrl
   }
 }
 
@@ -211,6 +216,20 @@ module sqlRoleAssignments 'modules/sql-role-assignments.bicep' = {
 }
 
 // ---------------------------------------------------------------------------
+// App Service (Frontend)
+// Standard S1 plan + Windows Web App for the static chat frontend
+// ---------------------------------------------------------------------------
+module appService 'modules/app-service.bicep' = {
+  name: 'appService'
+  params: {
+    appServicePlanName: naming.outputs.appServicePlanName
+    webAppName: naming.outputs.webAppName
+    location: location
+    apiUrl: 'https://${containerApps.outputs.apiAppFqdn}/query'
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Outputs
 // ---------------------------------------------------------------------------
 output sqlServerFqdn string = sql.outputs.sqlServerFqdn
@@ -221,3 +240,4 @@ output apiAppFqdn string = containerApps.outputs.apiAppFqdn
 output mcpAppFqdn string = containerApps.outputs.mcpAppFqdn
 output apimGatewayUrl string = apim.outputs.apimGatewayUrl
 output mcpServers array = mcpServers
+output frontendUrl string = appService.outputs.webAppUrl

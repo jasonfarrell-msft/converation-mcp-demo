@@ -40,6 +40,9 @@ param sqlServerFqdn string
 @description('SQL Database name for the MCP app')
 param sqlDatabaseName string
 
+@description('Frontend URL to allow in the API CORS policy')
+param frontendUrl string
+
 // ---------------------------------------------------------------------------
 // Container App Environment
 // ---------------------------------------------------------------------------
@@ -85,6 +88,7 @@ resource containerAppApi 'Microsoft.App/containerApps@2025-07-01' = {
         corsPolicy: {
           allowedOrigins: [
             'http://localhost:8080'
+            frontendUrl
           ]
           allowedMethods: [
             '*'

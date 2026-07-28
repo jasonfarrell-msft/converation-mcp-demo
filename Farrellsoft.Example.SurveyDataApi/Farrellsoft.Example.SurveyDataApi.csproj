@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <EnablePreviewFeatures>true</EnablePreviewFeatures>
     <RootNamespace>Farrellsoft.Examples.SurveyDataApi</RootNamespace>
     <UserSecretsId>638f59dc-c7d5-4c8f-aab3-3e219dbd400b</UserSecretsId>
   </PropertyGroup>

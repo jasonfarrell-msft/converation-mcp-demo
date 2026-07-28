@@ -11,9 +11,6 @@ param appName string
 @minLength(3)
 param suffix string
 
-@description('Publisher organization name used in naming')
-param apimPublisherName string
-
 @description('Location for cross-region resources')
 param resourceLocation string
 
@@ -32,7 +29,6 @@ module naming 'modules/naming.bicep' = {
     appName: appName
     location: resourceLocation
     suffix: suffix
-    apimPublisherName: apimPublisherName
   }
 }
 
